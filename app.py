@@ -395,39 +395,71 @@ elif selected_page == "Ask Knowledge":
             "What must be checked before promoting a release to production?",
             "What is the company's 2028 international expansion budget?",
         ]
-        suggested = st.selectbox("Suggested questions", ["Choose a question..."] + suggested_questions, key="ask_suggested_question")
-        question = st.text_area(
-            "Question",
-            value="" if suggested == "Choose a question..." else suggested,
-            placeholder="Ask about the Government OCR Platform...",
-            height=90,
-            key="ask_question",
-        )
-        controls = st.columns(3)
-        with controls[0]:
+        st.markdown("### Ask a question")
+
+if "ask_question" not in st.session_state:
+    st.session_state.ask_question = ""
+
+def use_example(question_text):
+    st.session_state.ask_question = question_text
+
+example_cols = st.columns(3)
+
+with example_cols[0]:
+    st.button(
+        "Production release checks",
+        on_click=use_example,
+        args=("What must be checked before promoting a release to production?",),
+        use_container_width=True,
+    )
+
+with example_cols[1]:
+    st.button(
+        "OCR service risks",
+        on_click=use_example,
+        args=("What risks affect the OCR service?",),
+        use_container_width=True,
+    )
+
+with example_cols[2]:
+    st.button(
+        "Kubernetes dependencies",
+        on_click=use_example,
+        args=("What depends on Kubernetes?",),
+        use_container_width=True,
+    )
+
+question = st.text_area(
+    "Question",
+    placeholder="Ask about the Government OCR Platform...",
+    height=90,
+    key="ask_question",
+)
+controls = st.columns(3)
+with controls[0]:
             retrieval_mode = st.radio("Retrieval", ["Semantic", "Keyword", "Graph", "Hybrid"], key="ask_retrieval_mode", horizontal=True)
-        with controls[1]:
+with controls[1]:
             generation_mode = st.radio("Generation", ["Demo / Local", "OpenAI"], key="ask_generation_mode", horizontal=True)
-        with controls[2]:
+with controls[2]:
             top_k = st.selectbox("Evidence Top-K", [1, 3, 5], index=2, key="ask_top_k")
 
-        if generation_mode == "OpenAI" and not os.getenv("OPENAI_API_KEY"):
-            st.caption("OpenAI is unavailable without an environment key. Demo / Local fallback will be used.")
+if generation_mode == "OpenAI" and not os.getenv("OPENAI_API_KEY"):
+    st.caption("OpenAI is unavailable without an environment key. Demo / Local fallback will be used.")
 
-        if st.button("Ask with evidence", type="primary", disabled=not question.strip()):
-            response = ask_knowledge(
-                question,
-                chunks,
-                vector_index,
-                knowledge_graph,
-                retrieval_mode=retrieval_mode,
-                generation_mode=generation_mode,
-                top_k=top_k,
-            )
-            st.session_state.ask_response = response
+if st.button("Ask with evidence", type="primary", disabled=not question.strip()):
+    response = ask_knowledge(
+        question,
+        chunks,
+        vector_index,
+        knowledge_graph,
+        retrieval_mode=retrieval_mode,
+        generation_mode=generation_mode,
+        top_k=top_k,
+    )
+    st.session_state.ask_response = response
 
-        response = st.session_state.get("ask_response")
-        if response:
+response = st.session_state.get("ask_response")
+if response:
             st.markdown('<div class="section-heading">Grounded answer</div>', unsafe_allow_html=True)
             st.markdown(f'<div class="hero"><div class="hero-kicker">{response.generation_mode.upper()}</div><h2>{response.answer}</h2><p>Grounding status: {response.grounding_status}</p></div>', unsafe_allow_html=True)
             if response.sources:
