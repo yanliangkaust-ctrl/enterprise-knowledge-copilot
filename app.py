@@ -385,6 +385,7 @@ elif selected_page == "Ask Knowledge":
             load_knowledge_base()
             st.rerun()
         st.info("Load the sample knowledge base to ask grounded questions.")
+        st.stop()
     else:
         chunks = st.session_state.chunks
         vector_index: VectorIndex = st.session_state.vector_index
