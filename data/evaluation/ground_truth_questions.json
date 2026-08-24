@@ -1,0 +1,72 @@
+[
+  {
+    "id": "q01",
+    "question": "What endpoints does the OCR Platform API expose?",
+    "expected_answer": "The API exposes POST /v1/ocr/jobs, GET /v1/ocr/jobs/{job_id}, and GET /v1/ocr/jobs/{job_id}/result.",
+    "expected_sources": ["API_Specification.md"],
+    "question_type": "single-document retrieval"
+  },
+  {
+    "id": "q02",
+    "question": "What is the purpose of the Government OCR Platform?",
+    "expected_answer": "It converts scanned public-service documents into searchable text for approved government teams with traceability and secure retrieval.",
+    "expected_sources": ["OCR_Platform_Architecture.md"],
+    "question_type": "single-document retrieval"
+  },
+  {
+    "id": "q03",
+    "question": "What controls protect documents at rest and in transit?",
+    "expected_answer": "Document Storage encrypts source files and OCR output, while API Gateway traffic uses TLS.",
+    "expected_sources": ["Security_Requirements.md"],
+    "question_type": "single-document retrieval"
+  },
+  {
+    "id": "q04",
+    "question": "Why was Kubernetes selected for OCR workloads?",
+    "expected_answer": "Kubernetes provides repeatable deployments, horizontal scaling for intake peaks, and controlled promotion from UAT to production.",
+    "expected_sources": ["ADR_Deployment.md"],
+    "question_type": "single-document retrieval"
+  },
+  {
+    "id": "q05",
+    "question": "What caused the batch OCR incident and how was it resolved?",
+    "expected_answer": "Kubernetes worker pods reached their memory limit during a 12,400-document batch; capacity was increased, workers restarted, and pending jobs replayed.",
+    "expected_sources": ["Incident_Batch_Failure.md"],
+    "question_type": "single-document retrieval"
+  },
+  {
+    "id": "q06",
+    "question": "How do the API Gateway, OCR Service, and Document Storage work together?",
+    "expected_answer": "Clients submit through the API Gateway, which routes jobs to OCR Service; the service stores source files and results in Document Storage.",
+    "expected_sources": ["OCR_Platform_Architecture.md", "API_Specification.md"],
+    "question_type": "cross-document synthesis"
+  },
+  {
+    "id": "q07",
+    "question": "What must be checked before promoting a release to production?",
+    "expected_answer": "API compatibility, Security Team approval, Monitoring Service coverage, representative UAT batches, and current risks must be checked.",
+    "expected_sources": ["Deployment_Guide.md", "UAT_Report.md"],
+    "question_type": "cross-document synthesis"
+  },
+  {
+    "id": "q08",
+    "question": "Which teams own platform operations and security?",
+    "expected_answer": "Platform Engineering Team owns Kubernetes and deployments, Operations Team responds to monitoring alerts, and Security Team owns security review and access controls.",
+    "expected_sources": ["OCR_Platform_Architecture.md", "Security_Requirements.md", "Risk_Register.md"],
+    "question_type": "cross-document synthesis"
+  },
+  {
+    "id": "q09",
+    "question": "Which risk is connected to the batch failure incident and what mitigates it?",
+    "expected_answer": "R-001, Kubernetes capacity during batch peaks, is connected; mitigations include capacity thresholds, queue-depth alerts, and UAT batch testing.",
+    "expected_sources": ["Incident_Batch_Failure.md", "Risk_Register.md", "ADR_Deployment.md"],
+    "question_type": "relationship reasoning"
+  },
+  {
+    "id": "q10",
+    "question": "How does the UAT Environment support the deployment decision?",
+    "expected_answer": "UAT validates API, OCR, storage, security, and monitoring behavior; its findings led to increased worker capacity and queue-depth alerting before production sign-off.",
+    "expected_sources": ["UAT_Report.md", "Deployment_Guide.md", "Incident_Batch_Failure.md"],
+    "question_type": "relationship reasoning"
+  }
+]
