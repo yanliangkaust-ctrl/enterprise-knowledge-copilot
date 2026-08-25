@@ -1,177 +1,71 @@
 # Enterprise Knowledge Copilot
 
-An enterprise AI knowledge retrieval and grounded Q&A system that turns scattered technical documentation into **traceable, evidence-backed answers**.
+An enterprise AI knowledge assistant that turns technical documents into **grounded, traceable answers** using semantic search, RAG, knowledge graphs, and hybrid retrieval.
 
-The system combines **keyword search, semantic retrieval, knowledge graph retrieval, hybrid retrieval, and Retrieval-Augmented Generation (RAG)** in one interactive workspace.
+## 🚀 Live Demo
 
----
+[Open Enterprise Knowledge Copilot](https://enterprise-knowledge-copilot-2w95w5w5viaj6sbm5ltpvw.streamlit.app/)
 
-## Why I Built This
-
-Enterprise teams often have important knowledge spread across:
-
-- Architecture decisions
-- Requirements
-- Incident reports
-- Risk registers
-- Deployment documentation
-- Operational notes
-
-Traditional keyword search can find exact terms, but it often struggles when:
-
-- users describe the same concept using different words
-- answers require information from multiple documents
-- relationships between systems matter
-- users need evidence behind an AI-generated answer
-
-**Enterprise Knowledge Copilot** explores how semantic search, knowledge graphs, and RAG can work together to make enterprise knowledge easier to discover and verify.
+> Click **Load Sample Knowledge Base** to initialize the demo, then explore the Document Library, Knowledge Explorer, Ask Knowledge, and Evaluation workspaces.
 
 ---
 
-## Product Capabilities
+## What It Does
 
-### Document Library
+Enterprise knowledge is often scattered across requirements, architecture decisions, incident reports, risks, and deployment documentation.
 
-Loads and organizes an enterprise sample knowledge base.
+Enterprise Knowledge Copilot brings that information into one evidence-focused workflow:
 
-The current demo contains:
+- 📚 Document ingestion and section-level indexing
+- 🔎 Keyword and semantic retrieval
+- 🧠 Retrieval-Augmented Generation (RAG)
+- 🕸️ Knowledge graph exploration
+- ⚡ Hybrid semantic + graph retrieval
+- 🔍 Source and evidence provenance
+- 📊 Quantitative retrieval evaluation
+- 🚫 Insufficient-evidence handling
 
-- **8 documents**
-- **46 sections**
-- **9,520 characters**
+The core principle:
 
-Documents are processed into searchable sections while preserving source information.
+> **Retrieve evidence first. Generate answers second.**
 
-### Semantic Retrieval
+---
 
-Uses sentence-transformer embeddings and vector similarity to find conceptually relevant evidence even when the user's wording differs from the source documents.
-
-### Keyword Retrieval
-
-Provides a transparent traditional search baseline for comparison with semantic retrieval.
-
-### Knowledge Graph
-
-Extracts entities and relationships from enterprise documents.
-
-The graph supports:
-
-- Entity lookup
-- Relationship exploration
-- Neighbor inspection
-- Path traversal
-- Source provenance
-- Interactive visualization
-
-Example:
+## Architecture
 
 ```text
-OCR Service
-    ↓
-Kubernetes
-    ↓
-R-001
+Enterprise Documents
+        ↓
+ Parsing & Chunking
+        ↓
+ ┌──────┴───────┐
+ ↓              ↓
+Semantic      Knowledge
+Retrieval      Graph
+ ↓              ↓
+ └──────┬───────┘
+        ↓
+ Hybrid Retrieval
+        ↓
+ Retrieved Evidence
+        ↓
+ Context + Grounded Prompt
+        ↓
+       RAG
+        ↓
+ Grounded Answer
+ + Sources + Evidence
 ```
 
-Graph facts remain traceable to supporting source documents.
+The application supports four retrieval strategies:
 
-### Hybrid Retrieval
-
-Combines semantic evidence with knowledge-graph evidence.
-
-The application supports four retrieval modes:
-
-- Keyword
-- Semantic
-- Graph
-- Hybrid
-
-### Grounded Q&A
-
-The **Ask Knowledge** workspace retrieves evidence before generating an answer.
-
-The pipeline follows:
-
-```text
-Question
-   ↓
-Retrieval
-   ↓
-Evidence
-   ↓
-Context Construction
-   ↓
-Grounded Prompt
-   ↓
-Answer Generation
-   ↓
-Answer + Sources + Evidence
-```
-
-If the available knowledge base does not contain enough information, the system can return:
-
-> **Insufficient evidence**
-
-instead of fabricating an answer.
+**Keyword · Semantic · Graph · Hybrid**
 
 ---
 
-## System Architecture
+## Evaluation Results
 
-```text
-                    ┌─────────────────────┐
-                    │     Streamlit UI    │
-                    └──────────┬──────────┘
-                               │
-                         User Question
-                               │
-                    ┌──────────▼──────────┐
-                    │ Retrieval Selector  │
-                    └──────────┬──────────┘
-                               │
-          ┌────────────────────┼────────────────────┐
-          │                    │                    │
-          ▼                    ▼                    ▼
-      Keyword              Semantic              Graph
-     Retrieval             Retrieval            Retrieval
-          │                    │                    │
-          └────────────────────┼────────────────────┘
-                               │
-                         Hybrid Retrieval
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Retrieved Evidence  │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   Context Builder   │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   Prompt Builder    │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Answer Generation   │
-                    │ Demo / OpenAI Mode  │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                       Grounded Answer
-                       + Sources
-                       + Evidence
-                       + Provenance
-```
-
----
-
-## Retrieval Evaluation
-
-The retrieval strategies were evaluated against a **10-question ground-truth benchmark**.
+Retrieval strategies were evaluated against a 10-question ground-truth benchmark.
 
 | Strategy | Recall@1 | Recall@3 | Recall@5 | MRR |
 |---|---:|---:|---:|---:|
@@ -182,335 +76,146 @@ The retrieval strategies were evaluated against a **10-question ground-truth ben
 
 ### Key Findings
 
-Semantic retrieval substantially improved the ability to rank the correct evidence first:
+**Semantic retrieval improved Recall@1 from 30% to 70%** compared with the keyword baseline.
 
-```text
-Keyword Recall@1:   30%
-Semantic Recall@1:  70%
-```
+**Hybrid retrieval achieved 100% Recall@3 and Recall@5**, providing the strongest evidence coverage.
 
-Hybrid retrieval achieved complete evidence coverage within the top results:
-
-```text
-Hybrid Recall@3: 100%
-Hybrid Recall@5: 100%
-```
-
-The experiment revealed an important retrieval trade-off:
-
-**Semantic retrieval** performed best at putting the correct evidence near the top.
-
-**Hybrid retrieval** performed best at ensuring the correct evidence appeared somewhere within the top results.
-
-**Graph retrieval** provided explicit relationship traversal and provenance, but did not outperform semantic retrieval as a general-purpose search method.
-
-This suggests that knowledge graphs are most useful as a **complement to semantic retrieval rather than a replacement for it**.
+The results suggest that graph retrieval is most useful as a **complement to semantic retrieval**, rather than a replacement for it.
 
 ---
 
-## Evaluation by Question Type
+## Grounded Q&A
 
-Retrieval performance can also be examined across different information needs, including:
-
-- Single-document retrieval
-- Cross-document synthesis
-- Relationship reasoning
-
-This allows retrieval quality to be evaluated by task rather than relying only on one overall metric.
-
----
-
-## Grounded RAG Design
-
-The RAG architecture separates retrieval, context construction, prompting, and generation.
+The RAG workflow keeps generated answers connected to retrieved evidence:
 
 ```text
-RAG Pipeline
-     │
-     ├── Retrieval
-     │
-     ├── Context Builder
-     │
-     ├── Prompt Builder
-     │
-     ├── Answer Generation
-     │
-     └── Typed Response Schema
+Question
+   ↓
+Retrieve Evidence
+   ↓
+Build Context
+   ↓
+Grounded Prompt
+   ↓
+Generate Answer
+   ↓
+Answer + Sources + Evidence
 ```
 
-This modular structure makes the system easier to:
+When the knowledge base does not contain enough supporting information, the system can return:
 
-- Test
-- Debug
-- Evaluate
-- Extend
-- Explain
+> **Insufficient evidence**
 
-Generated answers are grounded in retrieved evidence rather than unrestricted model generation.
+rather than fabricate an answer.
 
 ---
 
 ## Knowledge Graph
 
-The Knowledge Explorer provides structured relationship discovery across the enterprise knowledge base.
+The Knowledge Explorer supports:
 
-The prototype supports:
-
-- Deterministic entity extraction
-- Relationship extraction
-- Entity deduplication
-- Graph construction
-- Neighbor lookup
+- Entity and relationship extraction
+- Graph visualization
+- Neighbor exploration
 - Relationship lookup
 - Path traversal
-- Provenance inspection
-- Graph visualization
+- Source provenance
 
-A valid graph path was verified for:
+Example verified path:
 
 ```text
 OCR Service → Kubernetes → R-001
 ```
 
-Queries for nonexistent relationships return no fabricated graph paths.
-
----
-
-## Product Design Principles
-
-### Evidence Before Generation
-
-The system retrieves evidence before generating an answer.
-
-### Traceability
-
-Users can inspect the documents and evidence supporting an answer.
-
-### Multiple Retrieval Strategies
-
-Different enterprise questions may benefit from different retrieval approaches.
-
-### Graceful Failure
-
-When evidence is insufficient, the system should say so rather than invent information.
-
-### Measurable Quality
-
-Retrieval strategies are evaluated using quantitative metrics instead of relying only on subjective answer quality.
-
----
-
-## Understanding the Metrics
-
-### Recall@K
-
-Recall@K asks:
-
-> Did the correct source appear somewhere within the top K retrieved results?
-
-For example:
-
-**Recall@3 = 100%**
-
-means the correct evidence appeared within the first three results for every evaluated question.
-
-### MRR — Mean Reciprocal Rank
-
-MRR measures **how high the correct evidence appears in the ranking**.
-
-A correct result at position 1 receives a better score than a correct result at position 3.
-
-This helps distinguish:
-
-- finding the correct evidence
-- ranking the correct evidence first
+Graph relationships remain traceable to their supporting evidence.
 
 ---
 
 ## Tech Stack
 
-### Application
+**AI / Retrieval:** Sentence Transformers, semantic vector search, RAG, hybrid retrieval
 
-- Python
-- Streamlit
+**Knowledge Graph:** NetworkX, entity and relationship extraction
 
-### Retrieval
+**Application:** Python, Streamlit, Pydantic
 
-- Keyword retrieval
-- Sentence Transformers
-- Vector similarity search
-- Graph retrieval
-- Hybrid retrieval
+**Generation:** Demo / Local mode with optional OpenAI integration
 
-### Knowledge Graph
+**Quality:** Pytest, Recall@K, MRR, provenance validation
 
-- NetworkX
-- Deterministic entity extraction
-- Rule-based relationship extraction
-
-### RAG
-
-- Modular context construction
-- Grounded prompt generation
-- Pydantic response schemas
-- Deterministic Demo / Local generation
-- Optional OpenAI integration
-
-### Quality & Testing
-
-- Pytest
-- Retrieval benchmark
-- Browser workflow validation
-- Provenance validation
-
-### Deployment
-
-- Git
-- GitHub
-- Streamlit Community Cloud
+**Deployment:** GitHub, Streamlit Community Cloud
 
 ---
 
 ## Testing
 
-The project includes automated tests covering:
+**25 automated tests passed**, covering:
 
 - Document ingestion
-- Keyword retrieval
-- Semantic retrieval
-- Retrieval evaluation
+- Keyword and semantic retrieval
 - RAG behavior
 - Insufficient-evidence handling
-- Entity extraction
-- Relationship extraction
 - Knowledge graph construction
 - Graph traversal
+- Graph and hybrid retrieval
 - Provenance
-- Graph retrieval
-- Hybrid retrieval
-- Ranking behavior
+- Evaluation metrics
 
-Latest validated milestone:
-
-> **25 automated tests passed**
-
-Additional validation included:
-
-- Python syntax checks
-- All five application pages browser-tested
-- Document Library loaded successfully
-- Supported questions returned grounded answers
-- Unsupported questions returned insufficient evidence
-- Source/evidence traceability verified
-- Graph provenance verified
-- Valid graph path verified
-- Unsupported graph query produced no fabricated match
-- Semantic, Keyword, Graph, and Hybrid retrieval modes tested
+The five application workspaces were also browser-tested.
 
 ---
 
-## Project Structure
+## Product Design Principles
 
-```text
-EnterpriseKnowledgeCopilot/
-│
-├── app.py
-├── requirements.txt
-├── README.md
-│
-├── backend/
-│   ├── answer_generation.py
-│   ├── context_builder.py
-│   ├── prompt_builder.py
-│   ├── rag_pipeline.py
-│   ├── rag_schema.py
-│   └── ...
-│
-├── data/
-│   └── ...
-│
-├── frontend/
-│
-└── tests/
-    ├── test_document_ingestion.py
-    ├── test_graph.py
-    ├── test_rag.py
-    ├── test_retrieval.py
-    └── test_sprint5.py
-```
+**Grounded** — answers originate from retrieved enterprise evidence.
+
+**Traceable** — users can inspect supporting sources.
+
+**Measurable** — retrieval quality is evaluated quantitatively.
+
+**Explainable** — graph relationships and evidence remain inspectable.
+
+**Safe failure** — unsupported questions should not produce fabricated evidence.
 
 ---
 
 ## Current Limitations
 
-This project is an MVP / portfolio implementation rather than a production enterprise platform.
+This is a portfolio MVP rather than a production enterprise platform.
 
 Current limitations include:
 
-- Vector indexes are stored in memory
-- Knowledge graph is stored in memory
-- Graph extraction uses deterministic rules
-- Graph retrieval relies on explicit entity names and aliases
-- Hybrid weighting is intentionally simple
+- In-memory vector and graph indexes
+- Deterministic graph extraction
+- Simple hybrid weighting
 - No persistent vector database
-- No Neo4j persistence layer
+- No Neo4j persistence
 - No advanced neural reranking
-- No production document-access controls
-- Sample enterprise documents are used for the demonstration
-
-These limitations are intentionally visible rather than hidden behind the demo.
+- Sample enterprise documents used for the demo
 
 ---
 
-## Future Roadmap
+## Future Work
 
-Potential production extensions include:
+Potential extensions include:
 
-1. Persistent vector database
-2. Neo4j-backed knowledge graph
-3. Graph-RAG retrieval
-4. Cross-encoder reranking
-5. Production PDF and document ingestion
-6. OCR ingestion pipelines
-7. Access-control-aware retrieval
-8. Retrieval observability and tracing
-9. Larger evaluation datasets
-10. Human feedback and answer-quality evaluation
+- Persistent vector database
+- Neo4j-backed knowledge graph
+- Graph-RAG
+- Cross-encoder reranking
+- Production document ingestion
+- Access-control-aware retrieval
+- Retrieval observability
+- Larger evaluation benchmarks
 
 ---
 
-## What This Project Demonstrates
+## Project Status
 
-This project demonstrates the end-to-end development of an AI knowledge product rather than only an LLM API integration.
+**Functional Portfolio MVP — Deployed**
 
-### Product Thinking
+`Document Ingestion → Semantic Retrieval → RAG → Knowledge Graph → Hybrid Retrieval → Evaluation → Cloud Deployment`
 
-Defining an enterprise knowledge problem, user workflow, evidence requirements, and measurable success criteria.
+### Live Application
 
-### Information Retrieval
-
-Designing and comparing keyword, semantic, graph, and hybrid retrieval strategies.
-
-### AI Engineering
-
-Building an evidence-grounded RAG pipeline with controlled answer generation.
-
-### Knowledge Representation
-
-Representing enterprise entities, relationships, graph paths, and provenance.
-
-### Scientific Evaluation
-
-Comparing retrieval strategies using Recall@K, MRR, ground-truth questions, and question-type analysis.
-
-### Software Engineering
-
-Building a modular Python architecture with typed schemas, automated tests, Git version control, and cloud deployment.
-
----
-
-## Status
-
-**Portfolio MVP — Functional and Deployed**
-
-Core retrieval, RAG, knowledge graph, hybrid search, evaluation, provenance, automated testing, and Streamlit deployment are implemented.
+[Launch the Enterprise Knowledge Copilot](https://enterprise-knowledge-copilot-2w95w5w5viaj6sbm5ltpvw.streamlit.app/)
