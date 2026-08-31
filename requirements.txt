@@ -4,3 +4,4 @@ sentence-transformers>=3.0,<6.0
 networkx>=3.2,<4.0
 pydantic>=2.0
 openai>=1.0
+pyvis==0.3.2

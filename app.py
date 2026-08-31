@@ -2,6 +2,9 @@ import streamlit as st
 import json
 import os
 from pathlib import Path
+from pyvis.network import Network
+import streamlit.components.v1 as components
+import math
 
 from backend.document_ingestion import (
     DocumentRecord,
@@ -43,6 +46,218 @@ def load_knowledge_base() -> None:
     st.session_state.chunks = chunks
     st.session_state.vector_index = vector_index
     st.session_state.knowledge_graph = knowledge_graph
+def render_knowledge_graph(
+    knowledge_graph: KnowledgeGraph,
+    center_name: str | None = None,
+) -> None:
+    """Render a focused, interactive relationship map around one entity."""
+
+    graph = knowledge_graph.graph
+    if graph.number_of_nodes() == 0:
+        st.info("No graph data available.")
+        return
+
+    # Resolve the selected center entity by case-insensitive name.
+    center_id = None
+    if center_name:
+        target = center_name.strip().casefold()
+        for node_id, attrs in graph.nodes(data=True):
+            node_name = str(attrs.get("name", node_id))
+            if node_name.casefold() == target:
+                center_id = node_id
+                break
+
+    # Portfolio-friendly default if no entity is selected.
+    if center_id is None:
+        ocr_candidate = next(
+            (
+                node_id
+                for node_id, attrs in graph.nodes(data=True)
+                if str(attrs.get("name", node_id)).casefold() == "ocr service"
+            ),
+            None,
+        )
+        center_id = ocr_candidate or max(graph.nodes, key=lambda node: graph.degree(node))
+
+    first_hop = set(graph.successors(center_id)) | set(graph.predecessors(center_id))
+
+    second_hop = set()
+    for node_id in first_hop:
+        second_hop.update(graph.successors(node_id))
+        second_hop.update(graph.predecessors(node_id))
+    second_hop.discard(center_id)
+    second_hop -= first_hop
+
+    # Keep the canvas readable. Direct relationships are always retained.
+    first_hop = set(sorted(first_hop, key=lambda node: graph.degree(node), reverse=True)[:10])
+    second_hop = set(sorted(second_hop, key=lambda node: graph.degree(node), reverse=True)[:12])
+    visible_nodes = {center_id} | first_hop | second_hop
+
+    network = Network(
+        height="610px",
+        width="100%",
+        bgcolor="#ffffff",
+        font_color="#10253f",
+        directed=True,
+    )
+
+    # Entity type drives color; the selected entity uses a dedicated highlight.
+    type_colors = {
+        "system": "#3478b9",
+        "service": "#3478b9",
+        "technology": "#159a9c",
+        "team": "#7b61a8",
+        "risk": "#e05a5a",
+        "requirement": "#e6a23c",
+        "document": "#718096",
+        "environment": "#4f8f72",
+        "incident": "#d06b45",
+    }
+
+    def node_name(node_id):
+        attrs = graph.nodes[node_id]
+        return str(attrs.get("name", node_id))
+
+    def node_type(node_id):
+        attrs = graph.nodes[node_id]
+        return str(attrs.get("entity_type", "entity")).lower()
+
+    def node_size(node_id, base_size):
+        # Size means graph importance/connectivity, not relevance to the center.
+        degree = graph.degree(node_id)
+        return base_size + min(degree * 2.6, 18)
+
+    def add_ring(nodes, radius, base_size, font_size):
+        ordered = sorted(nodes, key=lambda node: node_name(node).casefold())
+        if not ordered:
+            return
+
+        # Offset by -90 degrees so the first node starts at the top.
+        for index, node_id in enumerate(ordered):
+            angle = -math.pi / 2 + (2 * math.pi * index) / len(ordered)
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
+
+            name = node_name(node_id)
+            entity_type = node_type(node_id)
+            degree = graph.degree(node_id)
+
+            network.add_node(
+                node_id,
+                label=name,
+                title=(
+                    f"<b>{name}</b><br>"
+                    f"Type: {entity_type.title()}<br>"
+                    f"Connections: {degree}"
+                ),
+                x=x,
+                y=y,
+                size=node_size(node_id, base_size),
+                color={
+                    "background": type_colors.get(entity_type, "#5b7083"),
+                    "border": "#ffffff",
+                    "highlight": {
+                        "background": type_colors.get(entity_type, "#5b7083"),
+                        "border": "#10253f",
+                    },
+                },
+                borderWidth=2,
+                physics=False,
+                font={"size": font_size, "color": "#10253f"},
+            )
+
+    center_attrs = graph.nodes[center_id]
+    center_label = str(center_attrs.get("name", center_id))
+    center_type = str(center_attrs.get("entity_type", "entity")).lower()
+    center_degree = graph.degree(center_id)
+
+    network.add_node(
+        center_id,
+        label=center_label,
+        title=(
+            f"<b>{center_label}</b><br>"
+            f"Selected {center_type.title()}<br>"
+            f"Connections: {center_degree}"
+        ),
+        x=0,
+        y=0,
+        size=52,
+        color={
+            "background": "#10253f",
+            "border": "#159a9c",
+            "highlight": {"background": "#10253f", "border": "#159a9c"},
+        },
+        borderWidth=5,
+        physics=False,
+        font={"size": 18, "color": "#10253f", "vadjust": -42},
+    )
+
+    # Distance communicates relationship distance:
+    # 1-hop is closest; 2-hop is farther away.
+    add_ring(first_hop, radius=225, base_size=24, font_size=14)
+    add_ring(second_hop, radius=405, base_size=16, font_size=12)
+
+    # Keep the canvas clean: relationship names appear on hover, not permanently.
+    for source, target, edge_data in graph.edges(data=True):
+        if source not in visible_nodes or target not in visible_nodes:
+            continue
+
+        relationship = str(edge_data.get("relationship_type", "RELATED_TO"))
+        provenance = edge_data.get("provenance")
+
+        source_doc = getattr(provenance, "source_document", None)
+        source_section = getattr(provenance, "source_section", None)
+
+        hover_lines = [f"<b>{relationship}</b>"]
+        if source_doc:
+            hover_lines.append(f"Source: {source_doc}")
+        if source_section:
+            hover_lines.append(f"Section: {source_section}")
+
+        # Evidence strength is intentionally restrained; most demo edges have one provenance record.
+        width = 2.0
+        if isinstance(provenance, (list, tuple, set, dict)):
+            width = 1.5 + min(len(provenance), 4) * 0.5
+
+        network.add_edge(
+            source,
+            target,
+            title="<br>".join(hover_lines),
+            width=width,
+            color={"color": "#9aabb8", "highlight": "#3478b9"},
+            arrows={"to": {"enabled": True, "scaleFactor": 0.7}},
+        )
+
+    network.set_options(
+        """
+        {
+          "interaction": {
+            "hover": true,
+            "navigationButtons": true,
+            "keyboard": true,
+            "zoomView": true,
+            "dragView": true,
+            "tooltipDelay": 80
+          },
+          "nodes": {
+            "shape": "dot"
+          },
+          "edges": {
+            "smooth": {
+              "enabled": true,
+              "type": "curvedCW",
+              "roundness": 0.12
+            }
+          },
+          "physics": {
+            "enabled": false
+          }
+        }
+        """
+    )
+
+    html = network.generate_html()
+    components.html(html, height=640, scrolling=False)
 
 
 st.set_page_config(
@@ -305,80 +520,162 @@ elif selected_page == "Knowledge Explorer":
         graph_metrics = [
             ("Total entities", str(len(knowledge_graph)), "Deduplicated graph nodes"),
             ("Total relationships", str(knowledge_graph.relationship_count), "Explicit corpus relationships"),
-            ("Provenance records", str(sum(len(entity.provenance) for entity in knowledge_graph.entities())), "Source references retained"),
+            (
+                "Provenance records",
+                str(sum(len(entity.provenance) for entity in knowledge_graph.entities())),
+                "Source references retained",
+            ),
         ]
         for column, (label, value, note) in zip(metric_columns, graph_metrics):
             with column:
-                st.markdown(f'<div class="metric-card"><div class="metric-label">{label}</div><div class="metric-value">{value}</div><div class="metric-note">{note}</div></div>', unsafe_allow_html=True)
+                st.markdown(
+                    f'<div class="metric-card"><div class="metric-label">{label}</div>'
+                    f'<div class="metric-value">{value}</div>'
+                    f'<div class="metric-note">{note}</div></div>',
+                    unsafe_allow_html=True,
+                )
 
         st.markdown('<div class="section-heading">Entity search</div>', unsafe_allow_html=True)
-        entity_query = st.text_input("Find an entity", placeholder="Try: OCR Service, Kubernetes, or R-001", label_visibility="collapsed")
+        entity_query = st.text_input(
+            "Find an entity",
+            value="OCR Service",
+            placeholder="Try: OCR Service, Kubernetes, or R-001",
+            label_visibility="collapsed",
+        )
         matching_entities = [
-            entity for entity in knowledge_graph.entities()
+            entity
+            for entity in knowledge_graph.entities()
             if entity_query.casefold() in entity.name.casefold()
         ]
+
         if matching_entities:
-            selected_entity_name = st.selectbox("Select entity", [entity.name for entity in matching_entities], key="graph_selected_entity", label_visibility="collapsed")
+            selected_entity_name = st.selectbox(
+                "Select entity",
+                [entity.name for entity in matching_entities],
+                key="graph_selected_entity",
+                label_visibility="collapsed",
+            )
             selected_entity = knowledge_graph.entity(selected_entity_name)
+
             if selected_entity:
+                st.markdown(
+                    '<div class="section-heading">Relationship Map</div>',
+                    unsafe_allow_html=True,
+                )
+                st.caption(
+                    "Center = selected entity · closer = direct relationship · "
+                    "larger = more connected · color = entity type · hover a line for relationship evidence"
+                )
+                render_knowledge_graph(
+                    knowledge_graph,
+                    center_name=selected_entity.name,
+                )
+
                 detail_columns = st.columns([1, 2])
                 with detail_columns[0]:
-                    st.markdown(f'<div class="metric-card"><div class="metric-label">Entity type</div><div class="metric-value" style="font-size:18px">{selected_entity.entity_type}</div><div class="metric-note">{len(selected_entity.provenance)} provenance records</div></div>', unsafe_allow_html=True)
-                    st.markdown('<div class="section-heading" style="margin-top:20px">Direct neighbors</div>', unsafe_allow_html=True)
+                    st.markdown(
+                        f'<div class="metric-card"><div class="metric-label">Entity type</div>'
+                        f'<div class="metric-value" style="font-size:18px">{selected_entity.entity_type}</div>'
+                        f'<div class="metric-note">{len(selected_entity.provenance)} provenance records</div></div>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        '<div class="section-heading" style="margin-top:20px">Direct neighbors</div>',
+                        unsafe_allow_html=True,
+                    )
                     for neighbor in knowledge_graph.neighbors(selected_entity.entity_id):
                         st.markdown(f"- **{neighbor.name}** · {neighbor.entity_type}")
+
                 with detail_columns[1]:
-                    st.markdown('<div class="section-heading" style="margin-top:0">Relationships</div>', unsafe_allow_html=True)
+                    st.markdown(
+                        '<div class="section-heading" style="margin-top:0">Relationships</div>',
+                        unsafe_allow_html=True,
+                    )
                     relationship_rows = []
                     for relationship in knowledge_graph.relationships(selected_entity.entity_id):
-                        other_id = relationship.target_entity if relationship.source_entity == selected_entity.entity_id else relationship.source_entity
+                        other_id = (
+                            relationship.target_entity
+                            if relationship.source_entity == selected_entity.entity_id
+                            else relationship.source_entity
+                        )
                         other = knowledge_graph.entity(other_id)
-                        relationship_rows.append({
-                            "Direction": "outbound" if relationship.source_entity == selected_entity.entity_id else "inbound",
-                            "Relationship": relationship.relationship_type,
-                            "Entity": other.name if other else other_id,
-                            "Source": relationship.provenance.source_document,
-                            "Section": relationship.provenance.source_section,
-                        })
+                        relationship_rows.append(
+                            {
+                                "Direction": (
+                                    "outbound"
+                                    if relationship.source_entity == selected_entity.entity_id
+                                    else "inbound"
+                                ),
+                                "Relationship": relationship.relationship_type,
+                                "Entity": other.name if other else other_id,
+                                "Source": relationship.provenance.source_document,
+                                "Section": relationship.provenance.source_section,
+                            }
+                        )
                     st.dataframe(relationship_rows, hide_index=True, use_container_width=True)
-                    st.markdown('<div class="section-heading">Evidence</div>', unsafe_allow_html=True)
+
+                    st.markdown(
+                        '<div class="section-heading">Evidence</div>',
+                        unsafe_allow_html=True,
+                    )
                     for provenance in selected_entity.provenance[:5]:
-                        with st.expander(f"{provenance.source_document} · {provenance.source_section}"):
+                        with st.expander(
+                            f"{provenance.source_document} · {provenance.source_section}"
+                        ):
                             st.write(provenance.evidence_text)
-
-                graph_lines = ["graph knowledge_graph {", '  graph [overlap=false, splines=true];', "  node [shape=box, style=rounded];"]
-                graph_lines.append(f'  "{selected_entity.name}" [style="rounded,filled", fillcolor="#d9f0ee"];')
-                for relationship in knowledge_graph.relationships(selected_entity.entity_id):
-                    other_id = relationship.target_entity if relationship.source_entity == selected_entity.entity_id else relationship.source_entity
-                    other = knowledge_graph.entity(other_id)
-                    if other:
-                        graph_lines.append(f'  "{selected_entity.name}" -- "{other.name}" [label="{relationship.relationship_type}"];')
-                graph_lines.append("}")
-                st.graphviz_chart("\n".join(graph_lines), use_container_width=True)
         else:
-            st.info("No matching entities. Try a system, team, environment, risk, or document name.")
+            st.info(
+                "No matching entities. Try a system, team, environment, risk, or document name."
+            )
 
-        st.markdown('<div class="section-heading">Path exploration</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="section-heading">Path exploration</div>',
+            unsafe_allow_html=True,
+        )
         entity_names = [entity.name for entity in knowledge_graph.entities()]
         path_columns = st.columns(2)
+
         with path_columns[0]:
-            path_source = st.selectbox("From entity", entity_names, index=entity_names.index("OCR Service") if "OCR Service" in entity_names else 0, key="graph_path_source")
+            path_source = st.selectbox(
+                "From entity",
+                entity_names,
+                index=entity_names.index("OCR Service") if "OCR Service" in entity_names else 0,
+                key="graph_path_source",
+            )
         with path_columns[1]:
-            path_target = st.selectbox("To entity", entity_names, index=entity_names.index("R-001") if "R-001" in entity_names else 0, key="graph_path_target")
+            path_target = st.selectbox(
+                "To entity",
+                entity_names,
+                index=entity_names.index("R-001") if "R-001" in entity_names else 0,
+                key="graph_path_target",
+            )
+
         paths = knowledge_graph.paths(path_source, path_target)
         if paths:
             path = paths[0]
-            path_nodes = [path_source] + [knowledge_graph.entity(relationship.target_entity).name for relationship in path]
+            path_nodes = [path_source] + [
+                knowledge_graph.entity(relationship.target_entity).name
+                for relationship in path
+            ]
             st.success("Supported path found: " + " → ".join(path_nodes))
             for relationship in path:
-                st.markdown(f"`{relationship.relationship_type}` · {relationship.provenance.source_document} · {relationship.provenance.source_section}")
+                st.markdown(
+                    f"`{relationship.relationship_type}` · "
+                    f"{relationship.provenance.source_document} · "
+                    f"{relationship.provenance.source_section}"
+                )
                 st.caption(relationship.provenance.evidence_text)
         else:
             st.info(f"No supported path found between {path_source} and {path_target}.")
+
 elif selected_page == "Ask Knowledge":
     st.markdown('<div class="eyebrow">Grounded Q&A workspace</div>', unsafe_allow_html=True)
     st.markdown('<div class="module-heading">Ask Knowledge</div>', unsafe_allow_html=True)
-    st.markdown('<div class="module-copy">Ask a question and inspect the evidence behind the answer. Every response stays connected to retrieved source chunks.</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="module-copy">Ask a question and inspect the evidence behind the answer. '
+        'Every response stays connected to retrieved source chunks.</div>',
+        unsafe_allow_html=True,
+    )
 
     if "documents" not in st.session_state or not st.session_state.documents:
         if st.button("Load Sample Knowledge Base", type="primary"):
@@ -396,86 +693,127 @@ elif selected_page == "Ask Knowledge":
             "What must be checked before promoting a release to production?",
             "What is the company's 2028 international expansion budget?",
         ]
+
         st.markdown("### Ask a question")
 
-if "ask_question" not in st.session_state:
-    st.session_state.ask_question = ""
+        if "ask_question" not in st.session_state:
+            st.session_state.ask_question = ""
 
-def use_example(question_text):
-    st.session_state.ask_question = question_text
+        def use_example(question_text):
+            st.session_state.ask_question = question_text
 
-example_cols = st.columns(3)
+        example_cols = st.columns(3)
 
-with example_cols[0]:
-    st.button(
-        "Production release checks",
-        on_click=use_example,
-        args=("What must be checked before promoting a release to production?",),
-        use_container_width=True,
-    )
+        with example_cols[0]:
+            st.button(
+                "Production release checks",
+                on_click=use_example,
+                args=("What must be checked before promoting a release to production?",),
+                use_container_width=True,
+            )
 
-with example_cols[1]:
-    st.button(
-        "OCR service risks",
-        on_click=use_example,
-        args=("What risks affect the OCR service?",),
-        use_container_width=True,
-    )
+        with example_cols[1]:
+            st.button(
+                "OCR service risks",
+                on_click=use_example,
+                args=("What risks affect the OCR service?",),
+                use_container_width=True,
+            )
 
-with example_cols[2]:
-    st.button(
-        "Kubernetes dependencies",
-        on_click=use_example,
-        args=("What depends on Kubernetes?",),
-        use_container_width=True,
-    )
+        with example_cols[2]:
+            st.button(
+                "Kubernetes dependencies",
+                on_click=use_example,
+                args=("What depends on Kubernetes?",),
+                use_container_width=True,
+            )
 
-question = st.text_area(
-    "Question",
-    placeholder="Ask about the Government OCR Platform...",
-    height=90,
-    key="ask_question",
-)
-controls = st.columns(3)
-with controls[0]:
-            retrieval_mode = st.radio("Retrieval", ["Semantic", "Keyword", "Graph", "Hybrid"], key="ask_retrieval_mode", horizontal=True)
-with controls[1]:
-            generation_mode = st.radio("Generation", ["Demo / Local", "OpenAI"], key="ask_generation_mode", horizontal=True)
-with controls[2]:
-            top_k = st.selectbox("Evidence Top-K", [1, 3, 5], index=2, key="ask_top_k")
+        question = st.text_area(
+            "Question",
+            placeholder="Ask about the Government OCR Platform...",
+            height=90,
+            key="ask_question",
+        )
 
-if generation_mode == "OpenAI" and not os.getenv("OPENAI_API_KEY"):
-    st.caption("OpenAI is unavailable without an environment key. Demo / Local fallback will be used.")
+        controls = st.columns(3)
+        with controls[0]:
+            retrieval_mode = st.radio(
+                "Retrieval",
+                ["Semantic", "Keyword", "Graph", "Hybrid"],
+                key="ask_retrieval_mode",
+                horizontal=True,
+            )
+        with controls[1]:
+            generation_mode = st.radio(
+                "Generation",
+                ["Demo / Local", "OpenAI"],
+                key="ask_generation_mode",
+                horizontal=True,
+            )
+        with controls[2]:
+            top_k = st.selectbox(
+                "Evidence Top-K",
+                [1, 3, 5],
+                index=2,
+                key="ask_top_k",
+            )
 
-if st.button("Ask with evidence", type="primary", disabled=not question.strip()):
-    response = ask_knowledge(
-        question,
-        chunks,
-        vector_index,
-        knowledge_graph,
-        retrieval_mode=retrieval_mode,
-        generation_mode=generation_mode,
-        top_k=top_k,
-    )
-    st.session_state.ask_response = response
+        if generation_mode == "OpenAI" and not os.getenv("OPENAI_API_KEY"):
+            st.caption(
+                "OpenAI is unavailable without an environment key. "
+                "Demo / Local fallback will be used."
+            )
 
-response = st.session_state.get("ask_response")
-if response:
-            st.markdown('<div class="section-heading">Grounded answer</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="hero"><div class="hero-kicker">{response.generation_mode.upper()}</div><h2>{response.answer}</h2><p>Grounding status: {response.grounding_status}</p></div>', unsafe_allow_html=True)
+        if st.button("Ask with evidence", type="primary", disabled=not question.strip()):
+            response = ask_knowledge(
+                question,
+                chunks,
+                vector_index,
+                knowledge_graph,
+                retrieval_mode=retrieval_mode,
+                generation_mode=generation_mode,
+                top_k=top_k,
+            )
+            st.session_state.ask_response = response
+
+        response = st.session_state.get("ask_response")
+        if response:
+            st.markdown(
+                '<div class="section-heading">Grounded answer</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f'<div class="hero"><div class="hero-kicker">{response.generation_mode.upper()}</div>'
+                f'<h2>{response.answer}</h2><p>Grounding status: {response.grounding_status}</p></div>',
+                unsafe_allow_html=True,
+            )
+
             if response.sources:
-                st.markdown('<div class="section-heading">Sources used</div>', unsafe_allow_html=True)
+                st.markdown(
+                    '<div class="section-heading">Sources used</div>',
+                    unsafe_allow_html=True,
+                )
                 for source in response.sources:
                     st.markdown(f"- `{source}`")
-            st.markdown('<div class="section-heading">Retrieved evidence</div>', unsafe_allow_html=True)
+
+            st.markdown(
+                '<div class="section-heading">Retrieved evidence</div>',
+                unsafe_allow_html=True,
+            )
             for item in response.retrieved_evidence:
-                st.markdown(f"**{item.rank}. {item.source_document}** · `{item.section}` · score `{item.score:.3f}`")
+                st.markdown(
+                    f"**{item.rank}. {item.source_document}** · "
+                    f"`{item.section}` · score `{item.score:.3f}`"
+                )
                 if item.selection_reason:
                     st.caption(item.selection_reason)
                 if item.relationship_type:
-                    st.caption(f"Graph fact: {' → '.join(item.entity_path)} · {item.relationship_type}")
+                    st.caption(
+                        f"Graph fact: {' → '.join(item.entity_path)} · {item.relationship_type}"
+                    )
                 st.write(item.text)
                 st.divider()
+
 elif selected_page == "Evaluation":
     st.markdown('<div class="eyebrow">Retrieval quality</div>', unsafe_allow_html=True)
     st.markdown('<div class="module-heading">Retrieval Evaluation</div>', unsafe_allow_html=True)
