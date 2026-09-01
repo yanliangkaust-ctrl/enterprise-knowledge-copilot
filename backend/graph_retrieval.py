@@ -31,6 +31,8 @@ def match_question_entities(question: str, graph: KnowledgeGraph) -> list:
         "batch failure": "Batch OCR Failure",
         "batch ocr incident": "Batch OCR Failure",
         "ocr platform api": "API Gateway",
+        "ocr production": "OCR Service",
+        "ocr platform": "OCR Service",
         "risk r-001": "R-001",
     }
     matched_names = {

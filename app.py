@@ -15,6 +15,7 @@ from backend.document_ingestion import (
 )
 from backend.retrieval_evaluation import evaluate_retrieval
 from backend.rag_pipeline import ask_knowledge
+from backend.agentic_orchestrator import ask_agentic
 from backend.semantic_retrieval import RetrievalResult, VectorIndex
 from backend.graph_builder import build_knowledge_graph
 from backend.knowledge_graph import KnowledgeGraph
@@ -536,11 +537,31 @@ elif selected_page == "Knowledge Explorer":
                 )
 
         st.markdown('<div class="section-heading">Entity search</div>', unsafe_allow_html=True)
+        st.caption("Quick examples · choose a node to inspect its direct relationships and source evidence.")
+
+        if "graph_entity_query" not in st.session_state:
+            st.session_state.graph_entity_query = "OCR Service"
+
+        def use_entity_example(entity_name):
+            st.session_state.graph_entity_query = entity_name
+
+        entity_examples = ["OCR Service", "Kubernetes", "Security Team", "R-001"]
+        entity_cols = st.columns(4)
+        for col, entity_name in zip(entity_cols, entity_examples):
+            with col:
+                st.button(
+                    entity_name,
+                    key=f"entity_example_{entity_name}",
+                    on_click=use_entity_example,
+                    args=(entity_name,),
+                    use_container_width=True,
+                )
+
         entity_query = st.text_input(
             "Find an entity",
-            value="OCR Service",
-            placeholder="Try: OCR Service, Kubernetes, or R-001",
+            placeholder="Try: OCR Service, Kubernetes, Security Team, or R-001",
             label_visibility="collapsed",
+            key="graph_entity_query",
         )
         matching_entities = [
             entity
@@ -688,13 +709,16 @@ elif selected_page == "Ask Knowledge":
         vector_index: VectorIndex = st.session_state.vector_index
         knowledge_graph: KnowledgeGraph = st.session_state.knowledge_graph
         suggested_questions = [
-            "What endpoints does the OCR Platform API expose?",
-            "What caused the batch OCR incident and how was it resolved?",
-            "What must be checked before promoting a release to production?",
-            "What is the company's 2028 international expansion budget?",
+            ("Risk + teams", "What risks could affect the OCR production deployment and which teams should be involved?"),
+            ("Kubernetes dependencies", "What depends on Kubernetes and what evidence supports those dependencies?"),
+            ("Production readiness", "What should be checked before promoting the OCR platform to production?"),
+            ("Batch failure", "What caused the batch OCR failure and how was it resolved?"),
+            ("Platform dependencies", "What components does the OCR platform depend on?"),
+            ("Evidence guardrail", "What is the company's 2028 international expansion budget?"),
         ]
 
         st.markdown("### Ask a question")
+        st.caption("Demo scenarios · choose a question to showcase routing, graph reasoning, incident analysis, or evidence guardrails.")
 
         if "ask_question" not in st.session_state:
             st.session_state.ask_question = ""
@@ -702,31 +726,17 @@ elif selected_page == "Ask Knowledge":
         def use_example(question_text):
             st.session_state.ask_question = question_text
 
-        example_cols = st.columns(3)
+        for row_start in range(0, len(suggested_questions), 3):
+            example_cols = st.columns(3)
+            for col, (label, example_question) in zip(example_cols, suggested_questions[row_start:row_start + 3]):
+                with col:
+                    st.button(
+                        label,
+                        on_click=use_example,
+                        args=(example_question,),
+                        use_container_width=True,
+                    )
 
-        with example_cols[0]:
-            st.button(
-                "Production release checks",
-                on_click=use_example,
-                args=("What must be checked before promoting a release to production?",),
-                use_container_width=True,
-            )
-
-        with example_cols[1]:
-            st.button(
-                "OCR service risks",
-                on_click=use_example,
-                args=("What risks affect the OCR service?",),
-                use_container_width=True,
-            )
-
-        with example_cols[2]:
-            st.button(
-                "Kubernetes dependencies",
-                on_click=use_example,
-                args=("What depends on Kubernetes?",),
-                use_container_width=True,
-            )
 
         question = st.text_area(
             "Question",
@@ -739,7 +749,7 @@ elif selected_page == "Ask Knowledge":
         with controls[0]:
             retrieval_mode = st.radio(
                 "Retrieval",
-                ["Semantic", "Keyword", "Graph", "Hybrid"],
+                ["Agentic", "Semantic", "Keyword", "Graph", "Hybrid"],
                 key="ask_retrieval_mode",
                 horizontal=True,
             )
@@ -764,17 +774,29 @@ elif selected_page == "Ask Knowledge":
                 "Demo / Local fallback will be used."
             )
 
+        if retrieval_mode == "Agentic":
+            st.caption("Agentic mode automatically selects retrieval tools and verifies evidence before answering.")
+
         if st.button("Ask with evidence", type="primary", disabled=not question.strip()):
-            response = ask_knowledge(
-                question,
-                chunks,
-                vector_index,
-                knowledge_graph,
-                retrieval_mode=retrieval_mode,
-                generation_mode=generation_mode,
-                top_k=top_k,
-            )
-            st.session_state.ask_response = response
+            if retrieval_mode == "Agentic":
+                agent_result = ask_agentic(
+                    question, chunks, vector_index, knowledge_graph,
+                    generation_mode=generation_mode, top_k=top_k,
+                )
+                st.session_state.ask_response = agent_result.response
+                st.session_state.agent_trace = agent_result.trace
+            else:
+                response = ask_knowledge(
+                    question,
+                    chunks,
+                    vector_index,
+                    knowledge_graph,
+                    retrieval_mode=retrieval_mode,
+                    generation_mode=generation_mode,
+                    top_k=top_k,
+                )
+                st.session_state.ask_response = response
+                st.session_state.agent_trace = None
 
         response = st.session_state.get("ask_response")
         if response:
@@ -783,10 +805,24 @@ elif selected_page == "Ask Knowledge":
                 unsafe_allow_html=True,
             )
             st.markdown(
-                f'<div class="hero"><div class="hero-kicker">{response.generation_mode.upper()}</div>'
-                f'<h2>{response.answer}</h2><p>Grounding status: {response.grounding_status}</p></div>',
+                f'<div class="hero"><div class="hero-kicker">{response.generation_mode.upper()}</div></div>',
                 unsafe_allow_html=True,
             )
+            # Render the answer as Markdown so headings/bullets/bold text are
+            # readable instead of exposing literal ** markers inside HTML.
+            with st.container(border=True):
+                st.markdown(response.answer)
+                st.caption(f"Grounding status: {response.grounding_status}")
+
+            trace = st.session_state.get("agent_trace")
+            if trace:
+                with st.expander("Agent reasoning / Execution trace"):
+                    st.write(f"**Interpreted intent:** {trace.interpreted_intent}")
+                    for decision in trace.tool_decisions:
+                        st.write(f"**Tool:** `{decision.tool}` — {decision.reason}")
+                    st.write(f"**Evidence retrieved:** {trace.retrieved_evidence_count}")
+                    st.write(f"**Evidence sufficient:** {'Yes' if trace.evidence_sufficient else 'No'} — {trace.sufficiency_reason}")
+                    st.write(f"**Generation:** {trace.final_generation_mode}")
 
             if response.sources:
                 st.markdown(

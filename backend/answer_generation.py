@@ -65,18 +65,86 @@ def _generate_demo_answer(
             generation_mode="Demo / Local",
         )
 
-    statements = []
-    for item in supported[:2]:
-        first_sentence = re.split(r"(?<=[.!?])\s+", item.text.strip())[0]
-        statements.append(first_sentence)
+    answer = _format_demo_answer(question, supported)
     source_names = list(dict.fromkeys(item.source_document for item in supported))
     return GroundedResponse(
-        answer=" ".join(statements),
+        answer=answer,
         sources=source_names,
         retrieved_evidence=evidence,
         grounding_status="Grounded in retrieved evidence",
         generation_mode=mode,
     )
+
+
+def _clean_line(text: str) -> str:
+    """Normalize markdown-ish evidence lines for clean bullet rendering."""
+    text = text.strip()
+    text = re.sub(r"^[-*]\s*", "", text)
+    text = re.sub(r"^\d+\.\s*", "", text)
+    text = text.replace("**", "")
+    return text.strip()
+
+
+def _matching_lines(evidence: list[EvidenceItem], patterns: tuple[str, ...], limit: int = 4) -> list[str]:
+    matches: list[str] = []
+    seen: set[str] = set()
+    for item in evidence:
+        for raw in item.text.splitlines():
+            line = _clean_line(raw)
+            low = line.casefold()
+            if line and any(pattern in low for pattern in patterns) and line not in seen:
+                seen.add(line)
+                matches.append(line)
+                if len(matches) >= limit:
+                    return matches
+    return matches
+
+
+def _format_demo_answer(question: str, evidence: list[EvidenceItem]) -> str:
+    """Create a concise, scannable local-demo answer from retrieved evidence."""
+    q = question.casefold()
+    wants_risks = any(word in q for word in ("risk", "risks", "affect", "impact"))
+    wants_teams = any(word in q for word in ("team", "teams", "owner", "owners", "involved", "who"))
+    wants_actions = any(word in q for word in ("check", "checked", "before", "recommend", "action", "promot", "production"))
+
+    sections: list[str] = []
+    summary = _matching_lines(
+        evidence,
+        ("will deploy", "release path", "production deployment", "depends on", "platform flow"),
+        limit=1,
+    )
+    if not summary:
+        first = re.split(r"(?<=[.!?])\s+", evidence[0].text.strip())[0]
+        summary = [_clean_line(first)] if first else []
+    if summary:
+        sections.append("**Summary**\n" + "\n".join(f"- {line}" for line in summary))
+
+    if wants_risks:
+        risks = _matching_lines(evidence, ("impact:", "risk", "pending", "failed", "capacity", "unauthorized", "alert"), limit=4)
+        if risks:
+            sections.append("**Key risks**\n" + "\n".join(f"- {line}" for line in risks))
+
+    if wants_teams:
+        teams = _matching_lines(evidence, ("platform engineering team", "security team", "operations team"), limit=5)
+        if teams:
+            sections.append("**Teams involved**\n" + "\n".join(f"- {line}" for line in teams))
+
+    if wants_actions:
+        actions = _matching_lines(evidence, ("must approve", "confirm ", "review ", "validate ", "resolved before", "rolls back", "mitigation:"), limit=4)
+        if actions:
+            sections.append("**Recommended checks / actions**\n" + "\n".join(f"- {line}" for line in actions))
+
+    if len(sections) == 1:
+        findings = []
+        for item in evidence[:3]:
+            sentence = re.split(r"(?<=[.!?])\s+", item.text.strip())[0]
+            sentence = _clean_line(sentence)
+            if sentence and sentence not in findings:
+                findings.append(sentence)
+        if findings:
+            sections.append("**Key findings**\n" + "\n".join(f"- {line}" for line in findings))
+
+    return "\n\n".join(sections)
 
 
 def _supported_evidence(question: str, evidence: list[EvidenceItem]) -> list[EvidenceItem]:
