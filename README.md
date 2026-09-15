@@ -147,9 +147,48 @@ Graph relationships remain traceable to their supporting evidence.
 
 ---
 
+## FastAPI Service
+
+The FastAPI service uses the existing LangGraph workflow and local sample knowledge base.
+Run it from the repository root with:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn backend.api:app --reload
+```
+
+The API is available at `http://127.0.0.1:8000`. Interactive OpenAPI documentation is available at `http://127.0.0.1:8000/docs`.
+
+### Docker
+
+Build the FastAPI image from the repository root:
+
+```powershell
+docker build -t enterprise-knowledge-copilot-api .
+```
+
+Run the container:
+
+```powershell
+docker run --rm -p 8000:8000 enterprise-knowledge-copilot-api
+```
+
+Then check `http://127.0.0.1:8000/health` or open `http://127.0.0.1:8000/docs`. The image includes the sample knowledge-base files and has a Docker health check against `/health`.
+
+### Tests and CI
+
+Run the complete local test suite with:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+GitHub Actions runs on every push and pull request. It checks out the repository, configures Python 3.12, installs `requirements-dev.txt`, and runs the complete pytest suite. The workflow validates the application; it does not deploy it.
+
+This remains a portfolio/demo architecture with production-oriented engineering practices, not a production deployment.
+
 ## Testing
 
-**25 automated tests passed**, covering:
+**50 automated tests passed**, covering:
 
 - Document ingestion
 - Keyword and semantic retrieval
@@ -160,6 +199,9 @@ Graph relationships remain traceable to their supporting evidence.
 - Graph and hybrid retrieval
 - Provenance
 - Evaluation metrics
+- LangGraph orchestration
+- FastAPI endpoints and session context
+- Simulated operational tool routing
 
 The five application workspaces were also browser-tested.
 

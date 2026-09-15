@@ -18,12 +18,21 @@ from backend.hybrid_retrieval import search_hybrid
 from backend.knowledge_graph import KnowledgeGraph
 from backend.rag_schema import GroundedResponse
 from backend.semantic_retrieval import VectorIndex
+from backend.session_context import SessionContext
 
 
 @dataclass(frozen=True)
 class ToolDecision:
     tool: str
     reason: str
+
+
+@dataclass(frozen=True)
+class ToolExecution:
+    tool: str
+    input: str
+    status: str
+    source: str
 
 
 @dataclass
@@ -34,12 +43,14 @@ class AgentExecutionTrace:
     evidence_sufficient: bool = False
     sufficiency_reason: str = ""
     final_generation_mode: str = "Demo / Local"
+    tool_executions: list[ToolExecution] = field(default_factory=list)
 
 
 @dataclass
 class AgenticResult:
     response: GroundedResponse
     trace: AgentExecutionTrace
+    operational_data: list[dict[str, object]] = field(default_factory=list)
 
 
 _GRAPH_TERMS = {
@@ -143,38 +154,17 @@ def ask_agentic(
     knowledge_graph: KnowledgeGraph,
     generation_mode: str = "Demo / Local",
     top_k: int = 5,
+    session_context: SessionContext | None = None,
 ) -> AgenticResult:
     """Plan, retrieve, verify evidence, and generate a grounded answer."""
+    from backend.langgraph_orchestrator import ask_agentic_langgraph
 
-    intent, decisions = plan_tools(question, knowledge_graph)
-    primary = decisions[0]
-    results = _run_tool(primary.tool, question, chunks, vector_index, knowledge_graph, top_k)
-
-    # A graph route can be too strict when an entity is implicit. Fall back to hybrid,
-    # while keeping the trace explicit rather than silently changing strategy.
-    if primary.tool == "graph_search" and not results:
-        decisions.append(ToolDecision("hybrid_search", "Graph search returned no direct evidence, so hybrid retrieval broadens recall while retaining graph signals."))
-        results = _run_tool("hybrid_search", question, chunks, vector_index, knowledge_graph, top_k)
-
-    evidence = evidence_items_from_results(results)
-    response = generate_grounded_answer(question, evidence, mode=generation_mode)
-    sufficient, reason = _evidence_sufficient(question, response, results)
-
-    if not sufficient and response.grounding_status != "Insufficient evidence":
-        response = GroundedResponse(
-            answer="Insufficient evidence: the retrieved enterprise sources do not provide enough supported evidence for this question.",
-            sources=[],
-            retrieved_evidence=evidence,
-            grounding_status="Insufficient evidence",
-            generation_mode=response.generation_mode,
-        )
-
-    trace = AgentExecutionTrace(
-        interpreted_intent=intent,
-        tool_decisions=decisions,
-        retrieved_evidence_count=len(evidence),
-        evidence_sufficient=sufficient,
-        sufficiency_reason=reason,
-        final_generation_mode=response.generation_mode,
+    return ask_agentic_langgraph(
+        question,
+        chunks,
+        vector_index,
+        knowledge_graph,
+        generation_mode=generation_mode,
+        top_k=top_k,
+        session_context=session_context,
     )
-    return AgenticResult(response=response, trace=trace)

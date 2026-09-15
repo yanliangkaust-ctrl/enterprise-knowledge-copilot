@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.git/
+.gitignore
+.vscode/
+.idea/
+*.log
+*.tmp
+*.swp
+Dockerfile*
+README.md
+tests/
+docs/
+frontend/
+app.py
