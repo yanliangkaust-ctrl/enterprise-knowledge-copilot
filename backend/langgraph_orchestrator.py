@@ -9,6 +9,7 @@ from langgraph.graph import END, START, StateGraph
 
 from backend.answer_generation import _supported_evidence, evidence_items_from_results, generate_grounded_answer
 from backend.factual_support import unsupported_facets
+from backend.procedural_support import requested_operations, procedure_evidence
 from backend.resilience import ServiceFailure, boundary, degraded
 from backend.observability import decision, emit, record_metadata, stage, timed
 from backend.agentic_orchestrator import (
@@ -126,6 +127,8 @@ not permission to answer: the unchanged final sufficiency gate always runs.
     if not results:
         return checked("graph_empty", "Graph search returned no direct evidence.")
     evidence = evidence_items_from_results(results)
+    if requested_operations(question) and not procedure_evidence(question, evidence):
+        return checked("graph_missing_procedural_support", "Graph evidence lacks support for the requested procedure.")
     if not _supported_evidence(effective_question, evidence):
         return checked("graph_weak_text_support", "Graph evidence has no question-relevant textual support.")
     missing = unsupported_facets(question, evidence)

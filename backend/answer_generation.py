@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from backend.prompt_builder import GROUNDED_SYSTEM_PROMPT, build_grounded_prompt
 from backend.rag_schema import EvidenceItem, GroundedResponse
 from backend.observability import emit, timed
+from backend.procedural_support import requested_operations, procedure_evidence
 
 
 STOP_WORDS = {
@@ -47,6 +48,16 @@ def generate_grounded_answer(
     """Generate a traceable answer locally or through the OpenAI Responses API."""
 
     evidence = list(evidence)
+    if requested_operations(question):
+        supported = procedure_evidence(question, evidence)
+        if not supported:
+            emit("generation_refusal", reason_code="missing_procedural_support")
+            return GroundedResponse(answer="Insufficient evidence: the retrieved sources do not support the requested procedure.", sources=[], retrieved_evidence=evidence,
+                                    grounding_status="Insufficient evidence", generation_mode="Demo / Local")
+        # Extractive acceptance prevents a formatter/backend from substituting topical prose.
+        return GroundedResponse(answer="\n\n".join(item.text for item in supported),
+                                sources=list(dict.fromkeys(item.source_document for item in supported)),
+                                retrieved_evidence=supported, grounding_status="Grounded in retrieved evidence", generation_mode="Demo / Local")
     if mode == "OpenAI" and os.getenv("OPENAI_API_KEY"):
         return _generate_openai_answer(question, evidence, model)
     return _generate_demo_answer(question, evidence, mode)

@@ -21,6 +21,7 @@ from backend.rag_schema import GroundedResponse
 from backend.semantic_retrieval import VectorIndex
 from backend.session_context import SessionContext
 from backend.observability import decision, emit, timed
+from backend.procedural_support import requested_operations, procedure_evidence
 
 
 @dataclass(frozen=True)
@@ -128,6 +129,8 @@ def _evidence_sufficient(question: str, response: GroundedResponse, results: Seq
 
     if not results:
         return _sufficiency_result("no_evidence", False, "No evidence was retrieved by the selected tool.")
+    if requested_operations(question) and not procedure_evidence(question, response.retrieved_evidence):
+        return _sufficiency_result("missing_procedural_support", False, "Retrieved evidence does not support the requested procedure.")
     if response.grounding_status == "Insufficient evidence":
         return _sufficiency_result("missing_question_support", False, "Retrieved chunks did not contain enough question-relevant support.")
 

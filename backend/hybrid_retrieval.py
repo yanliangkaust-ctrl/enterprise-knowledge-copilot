@@ -5,6 +5,7 @@ from collections.abc import Sequence
 
 from backend.document_ingestion import ChunkRecord
 from backend.factual_support import evidence_supports_facet, requested_facets
+from backend.procedural_support import requested_operations, procedure_evidence
 from backend.rag_schema import EvidenceItem
 from backend.resilience import ServiceFailure, component, degraded
 from backend.observability import emit, timed
@@ -44,6 +45,13 @@ and the gate still refuses uncovered facets. No additional candidates are fetche
             rank=0, source_document=chunk.document_name, section=chunk.section_heading,
             chunk_id=chunk.chunk_id, text=chunk.text, score=0,
         )
+    if requested_operations(question):
+        support = procedure_evidence(question, list(evidence.values()))
+        if support:
+            for supported in support[:top_k]:
+                item = next(item for item in ranked if item["chunk"].chunk_id == supported.chunk_id)
+                selected.append({**item, "reasons": [*item["reasons"], "Preserved requested procedural support."]})
+                selected_ids.add(supported.chunk_id)
     for facet, anchors in requested_facets(question):
         if any(evidence_supports_facet(facet, anchors, [evidence[item["chunk"].chunk_id]]) for item in selected):
             continue
@@ -100,6 +108,26 @@ def search_hybrid(
         })
         item["graph_score"] = max(item["graph_score"], result.score)
         item["reasons"].append(result.reason)
+
+    # Only explicit procedural queries expand the pool. Scan the existing corpus
+    # with the unchanged support predicate; add at most K supporting chunks.
+    # No embedding calls/retries or filename relevance rules are introduced.
+    if requested_operations(question) and top_k > 0:
+        additions = 0
+        for operation, anchors in requested_operations(question):
+            scoped = "steps to " + operation + " " + " ".join(sorted(anchors))
+            for chunk in chunks:
+                evidence = EvidenceItem(rank=0, source_document=chunk.document_name,
+                                        section=chunk.section_heading, chunk_id=chunk.chunk_id,
+                                        text=chunk.text, score=0)
+                if procedure_evidence(scoped, [evidence]):
+                    if chunk.chunk_id not in merged and additions < top_k:
+                        merged[chunk.chunk_id] = {"chunk": chunk, "vector_score": 0.0,
+                                                 "graph_score": 0.0,
+                                                 "reasons": ["Operation/action and ordered procedural text support; no vector or graph score."]}
+                        additions += 1
+                    break
+        emit("procedural_candidates", candidate_count=additions, effective_k=top_k)
 
     ranked = sorted(
         merged.values(),
