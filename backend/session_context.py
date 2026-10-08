@@ -68,6 +68,35 @@ def has_follow_up_reference(question: str) -> bool:
     return bool(tokens & _REFERENCE_TERMS) or "the risk" in question.casefold()
 
 
+def _resolve_unavailable_recipient(question: str, turn: SessionTurn) -> str | None:
+    """Resolve an unavailable-pronoun follow-up from the prior grounded turn."""
+
+    tokens = set(re.findall(r"[a-z0-9]+", question.casefold()))
+    if "unavailable" not in tokens or not tokens & {"they", "them", "he", "she", "it"}:
+        return None
+    if turn.grounding_status != "Grounded in retrieved evidence":
+        return None
+
+    recipient = re.search(
+        r"\b(?:the\s+)?(?P<name>[A-Z][\w-]*(?:\s+[A-Z][\w-]*){0,5})\s+"
+        r"must\s+be\s+(?:notified|contacted|alerted|informed)\b",
+        turn.answer,
+        flags=re.IGNORECASE,
+    )
+    incident = re.search(
+        r"\bP1\s+[A-Z][\w-]*(?:\s+[A-Z][\w-]*)*\s+incident\b",
+        turn.question,
+        flags=re.IGNORECASE,
+    )
+    if not recipient or not incident:
+        return None
+
+    return (
+        f"Who is the backup escalation contact if {recipient.group('name')} "
+        f"is unavailable during the {incident.group(0)}?"
+    )
+
+
 def build_relevant_context(question: str, context: SessionContext | None) -> str:
     """Return only compact prior anchors for an explicitly contextual question."""
 
@@ -75,14 +104,24 @@ def build_relevant_context(question: str, context: SessionContext | None) -> str
         return ""
 
     turn = context.recent_turns[-1]
+    resolved_follow_up = _resolve_unavailable_recipient(question, turn)
     anchors = list(dict.fromkeys((*turn.entities, *turn.topics)))[:12]
     references = [
         f"{item.source_document} / {item.section} / {item.chunk_id}"
         for item in turn.evidence_references[:5]
     ]
-    parts = [f"Prior conversational topic: {context.current_topic or 'recent enterprise question'}."]
-    if anchors:
-        parts.append("Prior entities and topics: " + ", ".join(anchors) + ".")
+    parts = []
+    if resolved_follow_up:
+        parts.append("Resolved follow-up query: " + resolved_follow_up)
+        if turn.answer:
+            parts.append("Prior grounded answer: " + turn.answer)
+    else:
+        parts.append(f"Prior conversational topic: {context.current_topic or 'recent enterprise question'}.")
+        parts.append("Prior user question: " + turn.question)
+        if turn.grounding_status == "Grounded in retrieved evidence" and turn.answer:
+            parts.append("Prior grounded answer: " + turn.answer)
+        if anchors:
+            parts.append("Prior entities and topics: " + ", ".join(anchors) + ".")
     if references:
         parts.append("Prior evidence references to revisit: " + "; ".join(references) + ".")
     if turn.operational_references:

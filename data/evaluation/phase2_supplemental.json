@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "extra_documents": [
+    {
+      "name": "cobalt_relay.md",
+      "text": "# Cobalt Relay\n\nCobalt Relay uses the Sapphire Mesh protocol to replicate the archive every 11 minutes.\n"
+    },
+    {
+      "name": "orion_backup.md",
+      "text": "# Orion Backup\n\n## Backup Policy\nOrion Backup writes encrypted snapshots to the Cedar Vault every 6 hours.\n"
+    }
+  ],
+  "questions": [
+    {
+      "id": "s01",
+      "question": "What protocol does Cobalt Relay use?",
+      "question_type": "distractor-heavy factual",
+      "answerable": true,
+      "expected_sources": [
+        "cobalt_relay.md"
+      ],
+      "gold_evidence": [
+        {
+          "document": "cobalt_relay.md",
+          "section": "Cobalt Relay",
+          "text_sha256": "506b08bec5ae3225b3694cba78e9bdfb588b80b1cd7361e44116da628ec96dd3"
+        }
+      ],
+      "partial_evidence": [],
+      "required_facts": [
+        {
+          "any_of": [
+            "Sapphire Mesh"
+          ],
+          "evidence": [
+            {
+              "document": "cobalt_relay.md",
+              "section": "Cobalt Relay",
+              "text_sha256": "506b08bec5ae3225b3694cba78e9bdfb588b80b1cd7361e44116da628ec96dd3"
+            }
+          ]
+        }
+      ],
+      "critical": [
+        {
+          "strategy": "vector_hash",
+          "field": "Hit Rate@1"
+        },
+        {
+          "strategy": "agentic",
+          "field": "required_fact_coverage"
+        },
+        {
+          "strategy": "agentic",
+          "field": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "s02",
+      "question": "Where does Orion Backup write encrypted snapshots?",
+      "question_type": "direct factual",
+      "answerable": true,
+      "expected_sources": [
+        "orion_backup.md"
+      ],
+      "gold_evidence": [
+        {
+          "document": "orion_backup.md",
+          "section": "Backup Policy",
+          "text_sha256": "080d8f321d05e729886f25354390d8c8dfff01276e35ceecbcf2eac09ca5e5b5"
+        }
+      ],
+      "partial_evidence": [],
+      "required_facts": [
+        {
+          "any_of": [
+            "Cedar Vault"
+          ],
+          "evidence": [
+            {
+              "document": "orion_backup.md",
+              "section": "Backup Policy",
+              "text_sha256": "080d8f321d05e729886f25354390d8c8dfff01276e35ceecbcf2eac09ca5e5b5"
+            }
+          ]
+        }
+      ],
+      "critical": []
+    },
+    {
+      "id": "s03",
+      "question": "What endpoints does the OCR Platform API expose?",
+      "question_type": "direct factual",
+      "answerable": true,
+      "expected_sources": [
+        "API_Specification.md"
+      ],
+      "gold_evidence": [
+        {
+          "document": "API_Specification.md",
+          "section": "Endpoints",
+          "text_sha256": "3752a96868376d352c7e490ccb4661bfa06e72940a0f2a1300d5cb617bf59e01"
+        }
+      ],
+      "partial_evidence": [],
+      "required_facts": [
+        {
+          "any_of": [
+            "POST /v1/ocr/jobs"
+          ],
+          "evidence": [
+            {
+              "document": "API_Specification.md",
+              "section": "Endpoints",
+              "text_sha256": "3752a96868376d352c7e490ccb4661bfa06e72940a0f2a1300d5cb617bf59e01"
+            }
+          ]
+        },
+        {
+          "any_of": [
+            "GET /v1/ocr/jobs/{job_id}/result"
+          ],
+          "evidence": [
+            {
+              "document": "API_Specification.md",
+              "section": "Endpoints",
+              "text_sha256": "3752a96868376d352c7e490ccb4661bfa06e72940a0f2a1300d5cb617bf59e01"
+            }
+          ]
+        }
+      ],
+      "critical": []
+    },
+    {
+      "id": "s04",
+      "question": "What protocol does Cobalt Relay use and what protects API Gateway traffic?",
+      "question_type": "multi-source",
+      "answerable": true,
+      "expected_sources": [
+        "cobalt_relay.md",
+        "Security_Requirements.md"
+      ],
+      "gold_evidence": [
+        {
+          "document": "cobalt_relay.md",
+          "section": "Cobalt Relay",
+          "text_sha256": "506b08bec5ae3225b3694cba78e9bdfb588b80b1cd7361e44116da628ec96dd3"
+        },
+        {
+          "document": "Security_Requirements.md",
+          "section": "Data Protection",
+          "text_sha256": "6282b4a07271e065acfb9368857c6b301d76d5353d68816a7a5a5e95cf7935b0"
+        }
+      ],
+      "partial_evidence": [],
+      "required_facts": [
+        {
+          "any_of": [
+            "Sapphire Mesh"
+          ],
+          "evidence": [
+            {
+              "document": "cobalt_relay.md",
+              "section": "Cobalt Relay",
+              "text_sha256": "506b08bec5ae3225b3694cba78e9bdfb588b80b1cd7361e44116da628ec96dd3"
+            }
+          ]
+        },
+        {
+          "any_of": [
+            "TLS"
+          ],
+          "evidence": [
+            {
+              "document": "Security_Requirements.md",
+              "section": "Data Protection",
+              "text_sha256": "6282b4a07271e065acfb9368857c6b301d76d5353d68816a7a5a5e95cf7935b0"
+            }
+          ]
+        }
+      ],
+      "critical": []
+    },
+    {
+      "id": "s05",
+      "question": "What is the company's 2028 international expansion budget?",
+      "question_type": "unsupported unrelated",
+      "answerable": false,
+      "expected_sources": [],
+      "gold_evidence": [],
+      "partial_evidence": [],
+      "required_facts": [],
+      "critical": [
+        {
+          "strategy": "agentic",
+          "field": "refused"
+        }
+      ]
+    },
+    {
+      "id": "s06",
+      "question": "What is the OCR Service license price?",
+      "question_type": "related entity unsupported fact",
+      "answerable": false,
+      "expected_sources": [],
+      "gold_evidence": [],
+      "partial_evidence": [],
+      "required_facts": [],
+      "critical": []
+    },
+    {
+      "id": "s07",
+      "question": "What protocol does Cobalt Relay use and who is its escalation contact?",
+      "question_type": "incomplete multi-part",
+      "answerable": false,
+      "expected_sources": [],
+      "gold_evidence": [],
+      "partial_evidence": [
+        {
+          "document": "cobalt_relay.md",
+          "section": "Cobalt Relay",
+          "text_sha256": "506b08bec5ae3225b3694cba78e9bdfb588b80b1cd7361e44116da628ec96dd3"
+        }
+      ],
+      "required_facts": [],
+      "critical": []
+    },
+    {
+      "id": "s08",
+      "question": "What protocol does Kubernetes use to replicate the archive?",
+      "question_type": "related entity unsupported fact",
+      "answerable": false,
+      "expected_sources": [],
+      "gold_evidence": [],
+      "partial_evidence": [],
+      "required_facts": [],
+      "critical": []
+    }
+  ]
+}

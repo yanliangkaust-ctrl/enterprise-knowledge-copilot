@@ -1,0 +1,1053 @@
+{
+  "after_report": "phase2b2b_after.json",
+  "agentic_score_errors": [],
+  "aggregates_after": {
+    "original": {
+      "agentic": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.9,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.6166666666666667,
+        "Precision@1": 0.4,
+        "Precision@3": 0.4,
+        "Precision@5": 0.26,
+        "Recall@1": 0.26666666666666666,
+        "Recall@3": 0.7166666666666667,
+        "Recall@5": 0.75,
+        "positive_questions": 10
+      },
+      "graph": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.6,
+        "Hit Rate@5": 0.6,
+        "MRR@5": 0.4666666666666667,
+        "Precision@1": 0.4,
+        "Precision@3": 0.2,
+        "Precision@5": 0.12000000000000002,
+        "Recall@1": 0.26666666666666666,
+        "Recall@3": 0.4166666666666667,
+        "Recall@5": 0.4166666666666667,
+        "positive_questions": 10
+      },
+      "hybrid": {
+        "Hit Rate@1": 0.3,
+        "Hit Rate@3": 0.9,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.575,
+        "Precision@1": 0.3,
+        "Precision@3": 0.4,
+        "Precision@5": 0.28,
+        "Recall@1": 0.16666666666666666,
+        "Recall@3": 0.7166666666666667,
+        "Recall@5": 0.85,
+        "positive_questions": 10
+      },
+      "keyword": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.7,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.5616666666666666,
+        "Precision@1": 0.4,
+        "Precision@3": 0.26666666666666666,
+        "Precision@5": 0.28,
+        "Recall@1": 0.23333333333333334,
+        "Recall@3": 0.5,
+        "Recall@5": 0.7833333333333333,
+        "positive_questions": 10
+      },
+      "vector_hash": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.8,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.5866666666666667,
+        "Precision@1": 0.4,
+        "Precision@3": 0.3333333333333333,
+        "Precision@5": 0.26,
+        "Recall@1": 0.21666666666666665,
+        "Recall@3": 0.5666666666666667,
+        "Recall@5": 0.75,
+        "positive_questions": 10
+      }
+    },
+    "supplemental": {
+      "agentic": {
+        "Evidence Precision@1": 0.75,
+        "Evidence Precision@3": 0.25,
+        "Evidence Precision@5": 0.15000000000000002,
+        "Evidence Recall@1": 0.625,
+        "Evidence Recall@3": 0.625,
+        "Evidence Recall@5": 0.625,
+        "Hit Rate@1": 0.75,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.8333333333333334,
+        "Precision@1": 0.75,
+        "Precision@3": 0.41666666666666663,
+        "Precision@5": 0.25,
+        "Recall@1": 0.625,
+        "Recall@3": 1.0,
+        "Recall@5": 1.0,
+        "positive_questions": 4
+      },
+      "graph": {
+        "Evidence Precision@1": 0.0,
+        "Evidence Precision@3": 0.0,
+        "Evidence Precision@5": 0.0,
+        "Evidence Recall@1": 0.0,
+        "Evidence Recall@3": 0.0,
+        "Evidence Recall@5": 0.0,
+        "Hit Rate@1": 0.0,
+        "Hit Rate@3": 0.25,
+        "Hit Rate@5": 0.25,
+        "MRR@5": 0.08333333333333333,
+        "Precision@1": 0.0,
+        "Precision@3": 0.08333333333333333,
+        "Precision@5": 0.05,
+        "Recall@1": 0.0,
+        "Recall@3": 0.25,
+        "Recall@5": 0.25,
+        "positive_questions": 4
+      },
+      "hybrid": {
+        "Evidence Precision@1": 0.75,
+        "Evidence Precision@3": 0.25,
+        "Evidence Precision@5": 0.15000000000000002,
+        "Evidence Recall@1": 0.625,
+        "Evidence Recall@3": 0.625,
+        "Evidence Recall@5": 0.625,
+        "Hit Rate@1": 0.75,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.8333333333333334,
+        "Precision@1": 0.75,
+        "Precision@3": 0.41666666666666663,
+        "Precision@5": 0.25,
+        "Recall@1": 0.625,
+        "Recall@3": 1.0,
+        "Recall@5": 1.0,
+        "positive_questions": 4
+      },
+      "keyword": {
+        "Evidence Precision@1": 0.5,
+        "Evidence Precision@3": 0.25,
+        "Evidence Precision@5": 0.15000000000000002,
+        "Evidence Recall@1": 0.5,
+        "Evidence Recall@3": 0.625,
+        "Evidence Recall@5": 0.625,
+        "Hit Rate@1": 0.5,
+        "Hit Rate@3": 0.75,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.6333333333333333,
+        "Precision@1": 0.5,
+        "Precision@3": 0.25,
+        "Precision@5": 0.2,
+        "Recall@1": 0.5,
+        "Recall@3": 0.625,
+        "Recall@5": 0.875,
+        "positive_questions": 4
+      },
+      "vector_hash": {
+        "Evidence Precision@1": 0.75,
+        "Evidence Precision@3": 0.3333333333333333,
+        "Evidence Precision@5": 0.2,
+        "Evidence Recall@1": 0.625,
+        "Evidence Recall@3": 0.75,
+        "Evidence Recall@5": 0.75,
+        "Hit Rate@1": 0.75,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.875,
+        "Precision@1": 0.75,
+        "Precision@3": 0.41666666666666663,
+        "Precision@5": 0.25,
+        "Recall@1": 0.625,
+        "Recall@3": 1.0,
+        "Recall@5": 1.0,
+        "positive_questions": 4
+      }
+    }
+  },
+  "aggregates_before": {
+    "original": {
+      "agentic": {
+        "Hit Rate@1": 0.5,
+        "Hit Rate@3": 0.9,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.6666666666666667,
+        "Precision@1": 0.5,
+        "Precision@3": 0.4,
+        "Precision@5": 0.24000000000000005,
+        "Recall@1": 0.3,
+        "Recall@3": 0.7166666666666667,
+        "Recall@5": 0.7166666666666667,
+        "positive_questions": 10
+      },
+      "graph": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.6,
+        "Hit Rate@5": 0.6,
+        "MRR@5": 0.4666666666666667,
+        "Precision@1": 0.4,
+        "Precision@3": 0.2,
+        "Precision@5": 0.12000000000000002,
+        "Recall@1": 0.26666666666666666,
+        "Recall@3": 0.4166666666666667,
+        "Recall@5": 0.4166666666666667,
+        "positive_questions": 10
+      },
+      "hybrid": {
+        "Hit Rate@1": 0.3,
+        "Hit Rate@3": 0.9,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.575,
+        "Precision@1": 0.3,
+        "Precision@3": 0.4,
+        "Precision@5": 0.28,
+        "Recall@1": 0.16666666666666666,
+        "Recall@3": 0.7166666666666667,
+        "Recall@5": 0.85,
+        "positive_questions": 10
+      },
+      "keyword": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.7,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.5616666666666666,
+        "Precision@1": 0.4,
+        "Precision@3": 0.26666666666666666,
+        "Precision@5": 0.28,
+        "Recall@1": 0.23333333333333334,
+        "Recall@3": 0.5,
+        "Recall@5": 0.7833333333333333,
+        "positive_questions": 10
+      },
+      "vector_hash": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.8,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.5866666666666667,
+        "Precision@1": 0.4,
+        "Precision@3": 0.3333333333333333,
+        "Precision@5": 0.26,
+        "Recall@1": 0.21666666666666665,
+        "Recall@3": 0.5666666666666667,
+        "Recall@5": 0.75,
+        "positive_questions": 10
+      }
+    },
+    "supplemental": {
+      "agentic": {
+        "Evidence Precision@1": 0.75,
+        "Evidence Precision@3": 0.25,
+        "Evidence Precision@5": 0.15000000000000002,
+        "Evidence Recall@1": 0.625,
+        "Evidence Recall@3": 0.625,
+        "Evidence Recall@5": 0.625,
+        "Hit Rate@1": 0.75,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.8333333333333334,
+        "Precision@1": 0.75,
+        "Precision@3": 0.41666666666666663,
+        "Precision@5": 0.25,
+        "Recall@1": 0.625,
+        "Recall@3": 1.0,
+        "Recall@5": 1.0,
+        "positive_questions": 4
+      },
+      "graph": {
+        "Evidence Precision@1": 0.0,
+        "Evidence Precision@3": 0.0,
+        "Evidence Precision@5": 0.0,
+        "Evidence Recall@1": 0.0,
+        "Evidence Recall@3": 0.0,
+        "Evidence Recall@5": 0.0,
+        "Hit Rate@1": 0.0,
+        "Hit Rate@3": 0.25,
+        "Hit Rate@5": 0.25,
+        "MRR@5": 0.08333333333333333,
+        "Precision@1": 0.0,
+        "Precision@3": 0.08333333333333333,
+        "Precision@5": 0.05,
+        "Recall@1": 0.0,
+        "Recall@3": 0.25,
+        "Recall@5": 0.25,
+        "positive_questions": 4
+      },
+      "hybrid": {
+        "Evidence Precision@1": 0.75,
+        "Evidence Precision@3": 0.25,
+        "Evidence Precision@5": 0.15000000000000002,
+        "Evidence Recall@1": 0.625,
+        "Evidence Recall@3": 0.625,
+        "Evidence Recall@5": 0.625,
+        "Hit Rate@1": 0.75,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.8333333333333334,
+        "Precision@1": 0.75,
+        "Precision@3": 0.41666666666666663,
+        "Precision@5": 0.25,
+        "Recall@1": 0.625,
+        "Recall@3": 1.0,
+        "Recall@5": 1.0,
+        "positive_questions": 4
+      },
+      "keyword": {
+        "Evidence Precision@1": 0.5,
+        "Evidence Precision@3": 0.25,
+        "Evidence Precision@5": 0.15000000000000002,
+        "Evidence Recall@1": 0.5,
+        "Evidence Recall@3": 0.625,
+        "Evidence Recall@5": 0.625,
+        "Hit Rate@1": 0.5,
+        "Hit Rate@3": 0.75,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.6333333333333333,
+        "Precision@1": 0.5,
+        "Precision@3": 0.25,
+        "Precision@5": 0.2,
+        "Recall@1": 0.5,
+        "Recall@3": 0.625,
+        "Recall@5": 0.875,
+        "positive_questions": 4
+      },
+      "vector_hash": {
+        "Evidence Precision@1": 0.75,
+        "Evidence Precision@3": 0.3333333333333333,
+        "Evidence Precision@5": 0.2,
+        "Evidence Recall@1": 0.625,
+        "Evidence Recall@3": 0.75,
+        "Evidence Recall@5": 0.75,
+        "Hit Rate@1": 0.75,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.875,
+        "Precision@1": 0.75,
+        "Precision@3": 0.41666666666666663,
+        "Precision@5": 0.25,
+        "Recall@1": 0.625,
+        "Recall@3": 1.0,
+        "Recall@5": 1.0,
+        "positive_questions": 4
+      }
+    }
+  },
+  "before_report": "phase2b2b_before.json",
+  "critical_after": {
+    "s01/agentic/accepted": true,
+    "s01/agentic/required_fact_coverage": 1.0,
+    "s01/vector_hash/Hit Rate@1": 1.0,
+    "s05/agentic/refused": true
+  },
+  "critical_before": {
+    "s01/agentic/accepted": true,
+    "s01/agentic/required_fact_coverage": 1.0,
+    "s01/vector_hash/Hit Rate@1": 1.0,
+    "s05/agentic/refused": true
+  },
+  "gate": {
+    "baseline_checked": true,
+    "errors": [],
+    "passed": true,
+    "repeat_equal": true
+  },
+  "graph_route_checks": {
+    "q01": [
+      {
+        "fallback_activated": false,
+        "final_mode": "graph_search",
+        "original_evidence": [
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-001",
+            "entity_path": [
+              "API Gateway",
+              "Kubernetes"
+            ],
+            "rank": 1,
+            "relationship_type": "DEPLOYED_ON",
+            "score": 1.0,
+            "section": "Decision",
+            "selection_reason": "Question names API Gateway; explicit DEPLOYED_ON fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes. Document Storage and the Monitoring Service remain managed platform dependencies accessed through private service endpoints."
+          },
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-001",
+            "entity_path": [
+              "OCR Service",
+              "Kubernetes"
+            ],
+            "rank": 2,
+            "relationship_type": "DEPLOYED_ON",
+            "score": 1.0,
+            "section": "Decision",
+            "selection_reason": "Question names OCR Service; explicit DEPLOYED_ON fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes. Document Storage and the Monitoring Service remain managed platform dependencies accessed through private service endpoints."
+          },
+          {
+            "chunk_id": "API_Specification.md::chunk-010",
+            "entity_path": [
+              "API Gateway",
+              "OCR Service"
+            ],
+            "rank": 3,
+            "relationship_type": "DEPENDS_ON",
+            "score": 1.0,
+            "section": "Dependencies",
+            "selection_reason": "Question names OCR Service; explicit DEPENDS_ON fact matched.",
+            "source_document": "API_Specification.md",
+            "text": "The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service. Contract changes require UAT Environment validation before production deployment."
+          },
+          {
+            "chunk_id": "API_Specification.md::chunk-010",
+            "entity_path": [
+              "API Gateway",
+              "Document Storage"
+            ],
+            "rank": 4,
+            "relationship_type": "DEPENDS_ON",
+            "score": 1.0,
+            "section": "Dependencies",
+            "selection_reason": "Question names API Gateway; explicit DEPENDS_ON fact matched.",
+            "source_document": "API_Specification.md",
+            "text": "The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service. Contract changes require UAT Environment validation before production deployment."
+          },
+          {
+            "chunk_id": "API_Specification.md::chunk-010",
+            "entity_path": [
+              "API Gateway",
+              "Kubernetes"
+            ],
+            "rank": 5,
+            "relationship_type": "DEPENDS_ON",
+            "score": 1.0,
+            "section": "Dependencies",
+            "selection_reason": "Question names API Gateway; explicit DEPENDS_ON fact matched.",
+            "source_document": "API_Specification.md",
+            "text": "The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service. Contract changes require UAT Environment validation before production deployment."
+          }
+        ],
+        "original_mode": "graph_search",
+        "reason": "Graph evidence passes existing text-relevance and requested-facet checks.",
+        "status": "adequate_support"
+      }
+    ],
+    "q02": [
+      {
+        "fallback_activated": false,
+        "final_mode": "graph_search",
+        "original_evidence": [
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-001",
+            "entity_path": [
+              "OCR Service",
+              "Kubernetes"
+            ],
+            "rank": 1,
+            "relationship_type": "DEPLOYED_ON",
+            "score": 1.0,
+            "section": "Decision",
+            "selection_reason": "Question names OCR Service; explicit DEPLOYED_ON fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes. Document Storage and the Monitoring Service remain managed platform dependencies accessed through private service endpoints."
+          },
+          {
+            "chunk_id": "API_Specification.md::chunk-010",
+            "entity_path": [
+              "API Gateway",
+              "OCR Service"
+            ],
+            "rank": 2,
+            "relationship_type": "DEPENDS_ON",
+            "score": 1.0,
+            "section": "Dependencies",
+            "selection_reason": "Question names OCR Service; explicit DEPENDS_ON fact matched.",
+            "source_document": "API_Specification.md",
+            "text": "The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service. Contract changes require UAT Environment validation before production deployment."
+          },
+          {
+            "chunk_id": "Incident_Batch_Failure.md::chunk-015",
+            "entity_path": [
+              "Batch OCR Failure",
+              "OCR Service"
+            ],
+            "rank": 3,
+            "relationship_type": "AFFECTS",
+            "score": 1.0,
+            "section": "Summary",
+            "selection_reason": "Question names OCR Service; explicit AFFECTS fact matched.",
+            "source_document": "Incident_Batch_Failure.md",
+            "text": "On 2025-04-18, a scheduled batch of 12,400 documents experienced elevated failures in the OCR Service. The API Gateway remained available, but Kubernetes worker pods reached their memory limit and jobs stayed pending."
+          }
+        ],
+        "original_mode": "graph_search",
+        "reason": "Graph evidence passes existing text-relevance and requested-facet checks.",
+        "status": "adequate_support"
+      }
+    ],
+    "q04": [
+      {
+        "fallback_activated": false,
+        "final_mode": "graph_search",
+        "original_evidence": [
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-001",
+            "entity_path": [
+              "OCR Service",
+              "Kubernetes"
+            ],
+            "rank": 1,
+            "relationship_type": "DEPLOYED_ON",
+            "score": 1.0,
+            "section": "Decision",
+            "selection_reason": "Question names Kubernetes; explicit DEPLOYED_ON fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes. Document Storage and the Monitoring Service remain managed platform dependencies accessed through private service endpoints."
+          },
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-001",
+            "entity_path": [
+              "API Gateway",
+              "Kubernetes"
+            ],
+            "rank": 2,
+            "relationship_type": "DEPLOYED_ON",
+            "score": 1.0,
+            "section": "Decision",
+            "selection_reason": "Question names Kubernetes; explicit DEPLOYED_ON fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes. Document Storage and the Monitoring Service remain managed platform dependencies accessed through private service endpoints."
+          },
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-005",
+            "entity_path": [
+              "Kubernetes",
+              "R-001"
+            ],
+            "rank": 3,
+            "relationship_type": "ASSOCIATED_WITH",
+            "score": 1.0,
+            "section": "Related Risks",
+            "selection_reason": "Question names Kubernetes; explicit ASSOCIATED_WITH fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "Kubernetes capacity is tracked as R-001 in the Risk Register. Batch processing failure is covered by the incident runbook and validated in the UAT Environment."
+          },
+          {
+            "chunk_id": "API_Specification.md::chunk-010",
+            "entity_path": [
+              "API Gateway",
+              "Kubernetes"
+            ],
+            "rank": 4,
+            "relationship_type": "DEPENDS_ON",
+            "score": 1.0,
+            "section": "Dependencies",
+            "selection_reason": "Question names Kubernetes; explicit DEPENDS_ON fact matched.",
+            "source_document": "API_Specification.md",
+            "text": "The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service. Contract changes require UAT Environment validation before production deployment."
+          },
+          {
+            "chunk_id": "Incident_Batch_Failure.md::chunk-015",
+            "entity_path": [
+              "Batch OCR Failure",
+              "Kubernetes"
+            ],
+            "rank": 5,
+            "relationship_type": "CAUSED_BY",
+            "score": 1.0,
+            "section": "Summary",
+            "selection_reason": "Question names Kubernetes; explicit CAUSED_BY fact matched.",
+            "source_document": "Incident_Batch_Failure.md",
+            "text": "On 2025-04-18, a scheduled batch of 12,400 documents experienced elevated failures in the OCR Service. The API Gateway remained available, but Kubernetes worker pods reached their memory limit and jobs stayed pending."
+          }
+        ],
+        "original_mode": "graph_search",
+        "reason": "Graph evidence passes existing text-relevance and requested-facet checks.",
+        "status": "adequate_support"
+      }
+    ],
+    "q10": [
+      {
+        "fallback_activated": true,
+        "final_mode": "hybrid_search",
+        "original_evidence": [
+          {
+            "chunk_id": "Incident_Batch_Failure.md::chunk-015",
+            "entity_path": [
+              "Batch OCR Failure",
+              "UAT Environment"
+            ],
+            "rank": 1,
+            "relationship_type": "AFFECTS",
+            "score": 1.0,
+            "section": "Summary",
+            "selection_reason": "Question names UAT Environment; explicit AFFECTS fact matched.",
+            "source_document": "Incident_Batch_Failure.md",
+            "text": "On 2025-04-18, a scheduled batch of 12,400 documents experienced elevated failures in the OCR Service. The API Gateway remained available, but Kubernetes worker pods reached their memory limit and jobs stayed pending."
+          }
+        ],
+        "original_mode": "graph_search",
+        "reason": "Graph evidence has no question-relevant textual support.",
+        "status": "weak_support"
+      }
+    ],
+    "s01": [
+      {
+        "fallback_activated": true,
+        "final_mode": "hybrid_search",
+        "original_evidence": [],
+        "original_mode": "graph_search",
+        "reason": "Graph search returned no direct evidence.",
+        "status": "empty"
+      }
+    ],
+    "s02": [
+      {
+        "fallback_activated": true,
+        "final_mode": "hybrid_search",
+        "original_evidence": [],
+        "original_mode": "graph_search",
+        "reason": "Graph search returned no direct evidence.",
+        "status": "empty"
+      }
+    ],
+    "s03": [
+      {
+        "fallback_activated": false,
+        "final_mode": "graph_search",
+        "original_evidence": [
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-001",
+            "entity_path": [
+              "API Gateway",
+              "Kubernetes"
+            ],
+            "rank": 1,
+            "relationship_type": "DEPLOYED_ON",
+            "score": 1.0,
+            "section": "Decision",
+            "selection_reason": "Question names API Gateway; explicit DEPLOYED_ON fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes. Document Storage and the Monitoring Service remain managed platform dependencies accessed through private service endpoints."
+          },
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-001",
+            "entity_path": [
+              "OCR Service",
+              "Kubernetes"
+            ],
+            "rank": 2,
+            "relationship_type": "DEPLOYED_ON",
+            "score": 1.0,
+            "section": "Decision",
+            "selection_reason": "Question names OCR Service; explicit DEPLOYED_ON fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes. Document Storage and the Monitoring Service remain managed platform dependencies accessed through private service endpoints."
+          },
+          {
+            "chunk_id": "API_Specification.md::chunk-010",
+            "entity_path": [
+              "API Gateway",
+              "OCR Service"
+            ],
+            "rank": 3,
+            "relationship_type": "DEPENDS_ON",
+            "score": 1.0,
+            "section": "Dependencies",
+            "selection_reason": "Question names OCR Service; explicit DEPENDS_ON fact matched.",
+            "source_document": "API_Specification.md",
+            "text": "The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service. Contract changes require UAT Environment validation before production deployment."
+          },
+          {
+            "chunk_id": "API_Specification.md::chunk-010",
+            "entity_path": [
+              "API Gateway",
+              "Document Storage"
+            ],
+            "rank": 4,
+            "relationship_type": "DEPENDS_ON",
+            "score": 1.0,
+            "section": "Dependencies",
+            "selection_reason": "Question names API Gateway; explicit DEPENDS_ON fact matched.",
+            "source_document": "API_Specification.md",
+            "text": "The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service. Contract changes require UAT Environment validation before production deployment."
+          },
+          {
+            "chunk_id": "API_Specification.md::chunk-010",
+            "entity_path": [
+              "API Gateway",
+              "Kubernetes"
+            ],
+            "rank": 5,
+            "relationship_type": "DEPENDS_ON",
+            "score": 1.0,
+            "section": "Dependencies",
+            "selection_reason": "Question names API Gateway; explicit DEPENDS_ON fact matched.",
+            "source_document": "API_Specification.md",
+            "text": "The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service. Contract changes require UAT Environment validation before production deployment."
+          }
+        ],
+        "original_mode": "graph_search",
+        "reason": "Graph evidence passes existing text-relevance and requested-facet checks.",
+        "status": "adequate_support"
+      }
+    ],
+    "s06": [
+      {
+        "fallback_activated": true,
+        "final_mode": "hybrid_search",
+        "original_evidence": [
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-001",
+            "entity_path": [
+              "OCR Service",
+              "Kubernetes"
+            ],
+            "rank": 1,
+            "relationship_type": "DEPLOYED_ON",
+            "score": 1.0,
+            "section": "Decision",
+            "selection_reason": "Question names OCR Service; explicit DEPLOYED_ON fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes. Document Storage and the Monitoring Service remain managed platform dependencies accessed through private service endpoints."
+          },
+          {
+            "chunk_id": "API_Specification.md::chunk-010",
+            "entity_path": [
+              "API Gateway",
+              "OCR Service"
+            ],
+            "rank": 2,
+            "relationship_type": "DEPENDS_ON",
+            "score": 1.0,
+            "section": "Dependencies",
+            "selection_reason": "Question names OCR Service; explicit DEPENDS_ON fact matched.",
+            "source_document": "API_Specification.md",
+            "text": "The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service. Contract changes require UAT Environment validation before production deployment."
+          },
+          {
+            "chunk_id": "Incident_Batch_Failure.md::chunk-015",
+            "entity_path": [
+              "Batch OCR Failure",
+              "OCR Service"
+            ],
+            "rank": 3,
+            "relationship_type": "AFFECTS",
+            "score": 1.0,
+            "section": "Summary",
+            "selection_reason": "Question names OCR Service; explicit AFFECTS fact matched.",
+            "source_document": "Incident_Batch_Failure.md",
+            "text": "On 2025-04-18, a scheduled batch of 12,400 documents experienced elevated failures in the OCR Service. The API Gateway remained available, but Kubernetes worker pods reached their memory limit and jobs stayed pending."
+          }
+        ],
+        "original_mode": "graph_search",
+        "reason": "Graph evidence lacks requested factual support: price/cost.",
+        "status": "weak_support"
+      }
+    ],
+    "s08": [
+      {
+        "fallback_activated": true,
+        "final_mode": "hybrid_search",
+        "original_evidence": [
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-001",
+            "entity_path": [
+              "OCR Service",
+              "Kubernetes"
+            ],
+            "rank": 1,
+            "relationship_type": "DEPLOYED_ON",
+            "score": 1.0,
+            "section": "Decision",
+            "selection_reason": "Question names Kubernetes; explicit DEPLOYED_ON fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes. Document Storage and the Monitoring Service remain managed platform dependencies accessed through private service endpoints."
+          },
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-001",
+            "entity_path": [
+              "API Gateway",
+              "Kubernetes"
+            ],
+            "rank": 2,
+            "relationship_type": "DEPLOYED_ON",
+            "score": 1.0,
+            "section": "Decision",
+            "selection_reason": "Question names Kubernetes; explicit DEPLOYED_ON fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes. Document Storage and the Monitoring Service remain managed platform dependencies accessed through private service endpoints."
+          },
+          {
+            "chunk_id": "ADR_Deployment.md::chunk-005",
+            "entity_path": [
+              "Kubernetes",
+              "R-001"
+            ],
+            "rank": 3,
+            "relationship_type": "ASSOCIATED_WITH",
+            "score": 1.0,
+            "section": "Related Risks",
+            "selection_reason": "Question names Kubernetes; explicit ASSOCIATED_WITH fact matched.",
+            "source_document": "ADR_Deployment.md",
+            "text": "Kubernetes capacity is tracked as R-001 in the Risk Register. Batch processing failure is covered by the incident runbook and validated in the UAT Environment."
+          },
+          {
+            "chunk_id": "API_Specification.md::chunk-010",
+            "entity_path": [
+              "API Gateway",
+              "Kubernetes"
+            ],
+            "rank": 4,
+            "relationship_type": "DEPENDS_ON",
+            "score": 1.0,
+            "section": "Dependencies",
+            "selection_reason": "Question names Kubernetes; explicit DEPENDS_ON fact matched.",
+            "source_document": "API_Specification.md",
+            "text": "The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service. Contract changes require UAT Environment validation before production deployment."
+          },
+          {
+            "chunk_id": "Incident_Batch_Failure.md::chunk-015",
+            "entity_path": [
+              "Batch OCR Failure",
+              "Kubernetes"
+            ],
+            "rank": 5,
+            "relationship_type": "CAUSED_BY",
+            "score": 1.0,
+            "section": "Summary",
+            "selection_reason": "Question names Kubernetes; explicit CAUSED_BY fact matched.",
+            "source_document": "Incident_Batch_Failure.md",
+            "text": "On 2025-04-18, a scheduled batch of 12,400 documents experienced elevated failures in the OCR Service. The API Gateway remained available, but Kubernetes worker pods reached their memory limit and jobs stayed pending."
+          }
+        ],
+        "original_mode": "graph_search",
+        "reason": "Graph evidence lacks requested factual support: protocol.",
+        "status": "weak_support"
+      }
+    ]
+  },
+  "limitations": [
+    "Weakness uses existing token-overlap and recognized factual support, not general entailment.",
+    "q10 now answers but local formatter still omits some expected synthesis details.",
+    "q10 rank-based label metrics decline at rank one; no additional exceptions were added."
+  ],
+  "original_false_refusals_after": [
+    "q08"
+  ],
+  "original_false_refusals_before": [
+    "q08",
+    "q10"
+  ],
+  "outcomes_after": {
+    "answerable_questions": 4,
+    "false_refusal_count": 0,
+    "false_refusal_rate": 0.0,
+    "path": "agentic; supplemental only",
+    "required_fact_count": 6,
+    "required_fact_coverage": 0.5,
+    "source_supported_fact_coverage": 0.5,
+    "unsupported_acceptance_count": 0,
+    "unsupported_acceptance_rate": 0.0,
+    "unsupported_questions": 4
+  },
+  "outcomes_before": {
+    "answerable_questions": 4,
+    "false_refusal_count": 0,
+    "false_refusal_rate": 0.0,
+    "path": "agentic; supplemental only",
+    "required_fact_count": 6,
+    "required_fact_coverage": 0.5,
+    "source_supported_fact_coverage": 0.5,
+    "unsupported_acceptance_count": 0,
+    "unsupported_acceptance_rate": 0.0,
+    "unsupported_questions": 4
+  },
+  "q10_after": {
+    "integrity_errors": [],
+    "metrics": {
+      "Hit Rate@1": 0.0,
+      "Hit Rate@3": 1.0,
+      "Hit Rate@5": 1.0,
+      "MRR@5": 0.5,
+      "Precision@1": 0.0,
+      "Precision@3": 0.3333333333333333,
+      "Precision@5": 0.4,
+      "Recall@1": 0.0,
+      "Recall@3": 0.3333333333333333,
+      "Recall@5": 0.6666666666666666
+    },
+    "outcome": {
+      "accepted": true,
+      "answer": "**Summary**\n- The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service. Contract changes require UAT Environment validation before production deployment.\n\n**Key findings**\n- The Platform Engineering Team owns Kubernetes and the deployment pipeline.\n- The Security Team approved the release after remediation.\n- The API depends on the OCR Service, Document Storage, Kubernetes networking, and the Monitoring Service.",
+      "refused": false,
+      "sources": [
+        "OCR_Platform_Architecture.md",
+        "UAT_Report.md",
+        "API_Specification.md",
+        "Incident_Batch_Failure.md",
+        "ADR_Deployment.md"
+      ]
+    },
+    "retrieved": [
+      {
+        "chunk_id": "OCR_Platform_Architecture.md::chunk-023",
+        "document_relevant": false,
+        "entity_path": [],
+        "rank": 1,
+        "relationship_type": "",
+        "relevance": "document-only/unjudged",
+        "score": 0.37407331466674804,
+        "section": "Teams and Dependencies",
+        "selection_reason": "Vector similarity 0.534",
+        "source_document": "OCR_Platform_Architecture.md",
+        "text_sha256": "2b74d23edffa39b95f7db04c75128be083bd2437a497a992cf396d695b336623"
+      },
+      {
+        "chunk_id": "UAT_Report.md::chunk-037",
+        "document_relevant": true,
+        "entity_path": [],
+        "rank": 2,
+        "relationship_type": "",
+        "relevance": "document-only/unjudged",
+        "score": 0.35720627307891845,
+        "section": "Sign-off",
+        "selection_reason": "Vector similarity 0.510",
+        "source_document": "UAT_Report.md",
+        "text_sha256": "0127fb0919d894a8b687ca2ea20bc553fb9be94da452d427f29a10eba4a73de0"
+      },
+      {
+        "chunk_id": "API_Specification.md::chunk-010",
+        "document_relevant": false,
+        "entity_path": [],
+        "rank": 3,
+        "relationship_type": "",
+        "relevance": "document-only/unjudged",
+        "score": 0.3357911467552185,
+        "section": "Dependencies",
+        "selection_reason": "Vector similarity 0.480",
+        "source_document": "API_Specification.md",
+        "text_sha256": "a6f4f22699b08eaf5e7bb1c0278eb07c60e7bae928df25e39acb65ebaa161cd7"
+      },
+      {
+        "chunk_id": "Incident_Batch_Failure.md::chunk-019",
+        "document_relevant": true,
+        "entity_path": [],
+        "rank": 4,
+        "relationship_type": "",
+        "relevance": "document-only/unjudged",
+        "score": 0.33166250586509705,
+        "section": "Follow-up Actions",
+        "selection_reason": "Vector similarity 0.474",
+        "source_document": "Incident_Batch_Failure.md",
+        "text_sha256": "be355ddae1a632c20845466588baaa28cda9ec614f001b0dc1e8ace07289d1bc"
+      },
+      {
+        "chunk_id": "ADR_Deployment.md::chunk-002",
+        "document_relevant": false,
+        "entity_path": [],
+        "rank": 5,
+        "relationship_type": "",
+        "relevance": "document-only/unjudged",
+        "score": 0.3256694823503494,
+        "section": "Context",
+        "selection_reason": "Vector similarity 0.465",
+        "source_document": "ADR_Deployment.md",
+        "text_sha256": "e692409f72e2f2343dc36ae7a423d55ac3289a8976ca9994f8c0ff841f91725c"
+      }
+    ]
+  },
+  "q10_before": {
+    "integrity_errors": [],
+    "metrics": {
+      "Hit Rate@1": 1.0,
+      "Hit Rate@3": 1.0,
+      "Hit Rate@5": 1.0,
+      "MRR@5": 1.0,
+      "Precision@1": 1.0,
+      "Precision@3": 0.3333333333333333,
+      "Precision@5": 0.2,
+      "Recall@1": 0.3333333333333333,
+      "Recall@3": 0.3333333333333333,
+      "Recall@5": 0.3333333333333333
+    },
+    "outcome": {
+      "accepted": false,
+      "answer": "Insufficient evidence: the retrieved enterprise sources do not support an answer to this question.",
+      "refused": true,
+      "sources": []
+    },
+    "retrieved": [
+      {
+        "chunk_id": "Incident_Batch_Failure.md::chunk-015",
+        "document_relevant": true,
+        "entity_path": [
+          "Batch OCR Failure",
+          "UAT Environment"
+        ],
+        "rank": 1,
+        "relationship_type": "AFFECTS",
+        "relevance": "document-only/unjudged",
+        "score": 1.0,
+        "section": "Summary",
+        "selection_reason": "Question names UAT Environment; explicit AFFECTS fact matched.",
+        "source_document": "Incident_Batch_Failure.md",
+        "text_sha256": "c3ad94ac9e72adfba5f0b9fa7871539e159f5f780e0b76412f16b0f517e5ead5"
+      }
+    ]
+  },
+  "q10_trace": {
+    "effective_question": "How does the UAT Environment support the deployment decision?",
+    "evidence_sufficient": true,
+    "final_generation_mode": "Demo / Local",
+    "interpreted_intent": "entity / dependency relationship question",
+    "retrieval_checks": [
+      {
+        "fallback_activated": true,
+        "final_mode": "hybrid_search",
+        "original_evidence": [
+          {
+            "chunk_id": "Incident_Batch_Failure.md::chunk-015",
+            "entity_path": [
+              "Batch OCR Failure",
+              "UAT Environment"
+            ],
+            "rank": 1,
+            "relationship_type": "AFFECTS",
+            "score": 1.0,
+            "section": "Summary",
+            "selection_reason": "Question names UAT Environment; explicit AFFECTS fact matched.",
+            "source_document": "Incident_Batch_Failure.md",
+            "text": "On 2025-04-18, a scheduled batch of 12,400 documents experienced elevated failures in the OCR Service. The API Gateway remained available, but Kubernetes worker pods reached their memory limit and jobs stayed pending."
+          }
+        ],
+        "original_mode": "graph_search",
+        "reason": "Graph evidence has no question-relevant textual support.",
+        "status": "weak_support"
+      }
+    ],
+    "retrieved_evidence_count": 5,
+    "sufficiency_reason": "Retrieved enterprise evidence covers the requested question facets and supports a grounded response.",
+    "tool_decisions": [
+      {
+        "reason": "The question asks about named entities, dependencies, risks, teams, or relationships.",
+        "tool": "graph_search"
+      },
+      {
+        "reason": "Graph evidence has no question-relevant textual support. Activating hybrid fallback while retaining graph signals; final evidence checks still apply.",
+        "tool": "hybrid_search"
+      }
+    ],
+    "tool_executions": []
+  },
+  "raw_retriever_results_unchanged": true,
+  "s04_unchanged": true,
+  "tests": {
+    "failed": 0,
+    "focused_passed": 65,
+    "full_passed": 127
+  },
+  "top_k": 5
+}

@@ -2,47 +2,64 @@ import streamlit as st
 import json
 import os
 from pathlib import Path
+from uuid import uuid4
 from pyvis.network import Network
 import streamlit.components.v1 as components
 import math
 
 from backend.document_ingestion import (
     DocumentRecord,
-    chunk_documents,
     load_markdown_documents,
     search_chunks,
     search_documents,
 )
-from backend.retrieval_evaluation import evaluate_retrieval
+from backend.knowledge_base import KnowledgeBase, get_shared_knowledge_base
 from backend.rag_pipeline import ask_knowledge
 from backend.agentic_orchestrator import ask_agentic
 from backend.semantic_retrieval import RetrievalResult, VectorIndex
-from backend.graph_builder import build_knowledge_graph
 from backend.knowledge_graph import KnowledgeGraph
 from backend.graph_retrieval import search_graph
 from backend.hybrid_retrieval import search_hybrid
+from backend.session_context import InMemorySessionStore
+from backend.observability import configure_json_logging, emit
+from backend.resilience import ServiceFailure
+
+configure_json_logging()
 
 
 SAMPLE_DOCS_DIR = Path(__file__).parent / "data" / "sample_docs"
 GROUND_TRUTH_PATH = Path(__file__).parent / "data" / "evaluation" / "ground_truth_questions.json"
 
 
-@st.cache_resource(show_spinner="Preparing local evidence index...")
-def build_knowledge_base() -> tuple[list[DocumentRecord], list, VectorIndex, KnowledgeGraph]:
-    """Build the local knowledge base once per Streamlit process."""
+@st.cache_resource
+def get_conversation_store() -> InMemorySessionStore:
+    """Return the process-wide in-memory conversation store."""
 
-    documents = load_markdown_documents(SAMPLE_DOCS_DIR)
-    chunks = chunk_documents(documents)
-    vector_index = VectorIndex()
-    vector_index.build(chunks)
-    knowledge_graph = build_knowledge_graph(chunks)
-    return documents, chunks, vector_index, knowledge_graph
+    return InMemorySessionStore()
+
+
+@st.cache_resource(show_spinner="Preparing local evidence index...")
+def build_knowledge_base() -> KnowledgeBase:
+    """Return the process-wide service backed by shared SQLite storage."""
+
+    try:
+        return get_shared_knowledge_base()
+    except Exception:
+        emit("application_error", stage="startup", status="error", error_code="startup_initialization_failed")
+        raise ServiceFailure("startup_initialization_failed", 503) from None
 
 
 def load_knowledge_base() -> None:
-    """Load the cached knowledge base into the current Streamlit session."""
+    """Add bundled Markdown sources to the shared knowledge base and sync state."""
 
-    documents, chunks, vector_index, knowledge_graph = build_knowledge_base()
+    build_knowledge_base().add_documents(load_markdown_documents(SAMPLE_DOCS_DIR), only_missing=True)
+    sync_knowledge_base_state()
+
+
+def sync_knowledge_base_state() -> None:
+    """Expose the latest shared knowledge-base indexes in this Streamlit session."""
+
+    documents, chunks, vector_index, knowledge_graph = build_knowledge_base().snapshot()
     st.session_state.documents = documents
     st.session_state.chunks = chunks
     st.session_state.vector_index = vector_index
@@ -392,6 +409,8 @@ with st.sidebar:
 
 st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 
+sync_knowledge_base_state()
+
 if selected_page == "Home":
     st.markdown('<div class="eyebrow">Workspace overview</div>', unsafe_allow_html=True)
     st.markdown('<div class="page-title">Turn scattered knowledge into confident decisions.</div>', unsafe_allow_html=True)
@@ -436,6 +455,27 @@ elif selected_page == "Document Library":
     st.markdown('<div class="eyebrow">Evidence workspace</div>', unsafe_allow_html=True)
     st.markdown('<div class="module-heading">Document Library</div>', unsafe_allow_html=True)
     st.markdown('<div class="module-copy">Review the source material that will ground future enterprise answers. This demo uses local Markdown documents only.</div>', unsafe_allow_html=True)
+
+    sync_knowledge_base_state()
+    uploaded_markdown = st.file_uploader(
+        "Admin: upload one Markdown file",
+        type=["md"],
+        accept_multiple_files=False,
+        key="admin_markdown_upload",
+    )
+    if st.button("Add Markdown to Knowledge Base", disabled=uploaded_markdown is None):
+        try:
+            document = build_knowledge_base().ingest_markdown(
+                uploaded_markdown.name,
+                uploaded_markdown.getvalue().decode("utf-8"),
+            )
+        except UnicodeDecodeError:
+            st.error("The uploaded Markdown file must use UTF-8 encoding.")
+        except ValueError as error:
+            st.error(str(error))
+        else:
+            sync_knowledge_base_state()
+            st.success(f"Indexed {document.name} (version {document.metadata['version']}); it is ready in Ask Knowledge.")
 
     if "documents" not in st.session_state:
         st.session_state.documents = []
@@ -690,14 +730,10 @@ elif selected_page == "Knowledge Explorer":
             st.info(f"No supported path found between {path_source} and {path_target}.")
 
 elif selected_page == "Ask Knowledge":
-    st.markdown('<div class="eyebrow">Grounded Q&A workspace</div>', unsafe_allow_html=True)
-    st.markdown('<div class="module-heading">Ask Knowledge</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="module-copy">Ask a question and inspect the evidence behind the answer. '
-        'Every response stays connected to retrieved source chunks.</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown('<div class="page-title">Ask the Knowledge Copilot</div>', unsafe_allow_html=True)
+    st.markdown('<div class="page-lede">Ask a question about company knowledge.</div>', unsafe_allow_html=True)
 
+    sync_knowledge_base_state()
     if "documents" not in st.session_state or not st.session_state.documents:
         if st.button("Load Sample Knowledge Base", type="primary"):
             load_knowledge_base()
@@ -708,6 +744,10 @@ elif selected_page == "Ask Knowledge":
         chunks = st.session_state.chunks
         vector_index: VectorIndex = st.session_state.vector_index
         knowledge_graph: KnowledgeGraph = st.session_state.knowledge_graph
+        if "conversation_session_id" not in st.session_state:
+            st.session_state.conversation_session_id = str(uuid4())
+        conversation_session_id = st.session_state.conversation_session_id
+        conversation_store = get_conversation_store()
         suggested_questions = [
             ("Risk + teams", "What risks could affect the OCR production deployment and which teams should be involved?"),
             ("Kubernetes dependencies", "What depends on Kubernetes and what evidence supports those dependencies?"),
@@ -717,15 +757,60 @@ elif selected_page == "Ask Knowledge":
             ("Evidence guardrail", "What is the company's 2028 international expansion budget?"),
         ]
 
-        st.markdown("### Ask a question")
-        st.caption("Demo scenarios · choose a question to showcase routing, graph reasoning, incident analysis, or evidence guardrails.")
-
         if "ask_question" not in st.session_state:
             st.session_state.ask_question = ""
 
         def use_example(question_text):
             st.session_state.ask_question = question_text
 
+        with st.container(border=True):
+            question = st.text_area(
+                "Your question",
+                placeholder="Ask about the Government OCR Platform...",
+                height=110,
+                key="ask_question",
+            )
+            ask_clicked = st.button(
+                "Ask Copilot",
+                type="primary",
+                disabled=not question.strip(),
+                use_container_width=True,
+            )
+
+        with st.expander("Advanced Options"):
+            controls = st.columns(3)
+            with controls[0]:
+                retrieval_mode = st.radio(
+                    "Retrieval",
+                    ["Agentic", "Semantic", "Keyword", "Graph", "Hybrid"],
+                    key="ask_retrieval_mode",
+                    horizontal=True,
+                )
+            with controls[1]:
+                generation_mode = st.radio(
+                    "Generation",
+                    ["Demo / Local", "OpenAI"],
+                    key="ask_generation_mode",
+                    horizontal=True,
+                )
+            with controls[2]:
+                top_k = st.selectbox(
+                    "Evidence Top-K",
+                    [1, 3, 5],
+                    index=2,
+                    key="ask_top_k",
+                )
+
+            if generation_mode == "OpenAI" and not os.getenv("OPENAI_API_KEY"):
+                st.caption(
+                    "OpenAI is unavailable without an environment key. "
+                    "Demo / Local fallback will be used."
+                )
+
+            if retrieval_mode == "Agentic":
+                st.caption("Agentic mode automatically selects retrieval tools and verifies evidence before answering.")
+
+        st.caption("Try a sample question")
         for row_start in range(0, len(suggested_questions), 3):
             example_cols = st.columns(3)
             for col, (label, example_question) in zip(example_cols, suggested_questions[row_start:row_start + 3]):
@@ -737,54 +822,22 @@ elif selected_page == "Ask Knowledge":
                         use_container_width=True,
                     )
 
-
-        question = st.text_area(
-            "Question",
-            placeholder="Ask about the Government OCR Platform...",
-            height=90,
-            key="ask_question",
-        )
-
-        controls = st.columns(3)
-        with controls[0]:
-            retrieval_mode = st.radio(
-                "Retrieval",
-                ["Agentic", "Semantic", "Keyword", "Graph", "Hybrid"],
-                key="ask_retrieval_mode",
-                horizontal=True,
-            )
-        with controls[1]:
-            generation_mode = st.radio(
-                "Generation",
-                ["Demo / Local", "OpenAI"],
-                key="ask_generation_mode",
-                horizontal=True,
-            )
-        with controls[2]:
-            top_k = st.selectbox(
-                "Evidence Top-K",
-                [1, 3, 5],
-                index=2,
-                key="ask_top_k",
-            )
-
-        if generation_mode == "OpenAI" and not os.getenv("OPENAI_API_KEY"):
-            st.caption(
-                "OpenAI is unavailable without an environment key. "
-                "Demo / Local fallback will be used."
-            )
-
-        if retrieval_mode == "Agentic":
-            st.caption("Agentic mode automatically selects retrieval tools and verifies evidence before answering.")
-
-        if st.button("Ask with evidence", type="primary", disabled=not question.strip()):
+        if ask_clicked:
             if retrieval_mode == "Agentic":
                 agent_result = ask_agentic(
                     question, chunks, vector_index, knowledge_graph,
                     generation_mode=generation_mode, top_k=top_k,
+                    session_context=conversation_store.get(conversation_session_id),
                 )
                 st.session_state.ask_response = agent_result.response
                 st.session_state.agent_trace = agent_result.trace
+                if agent_result.response.grounding_status == "Grounded in retrieved evidence":
+                    conversation_store.record(
+                        conversation_session_id,
+                        question,
+                        agent_result.response,
+                        knowledge_graph,
+                    )
             else:
                 response = ask_knowledge(
                     question,
@@ -801,18 +854,21 @@ elif selected_page == "Ask Knowledge":
         response = st.session_state.get("ask_response")
         if response:
             st.markdown(
-                '<div class="section-heading">Grounded answer</div>',
+                '<div class="section-heading">Answer</div>',
                 unsafe_allow_html=True,
             )
-            st.markdown(
-                f'<div class="hero"><div class="hero-kicker">{response.generation_mode.upper()}</div></div>',
-                unsafe_allow_html=True,
-            )
-            # Render the answer as Markdown so headings/bullets/bold text are
-            # readable instead of exposing literal ** markers inside HTML.
             with st.container(border=True):
+                st.caption(f"Generation: {response.generation_mode}")
                 st.markdown(response.answer)
                 st.caption(f"Grounding status: {response.grounding_status}")
+
+            if response.sources:
+                st.markdown(
+                    '<div class="section-heading">Sources used</div>',
+                    unsafe_allow_html=True,
+                )
+                for source in response.sources:
+                    st.markdown(f"- `{source}`")
 
             trace = st.session_state.get("agent_trace")
             if trace:
@@ -823,32 +879,22 @@ elif selected_page == "Ask Knowledge":
                     st.write(f"**Evidence retrieved:** {trace.retrieved_evidence_count}")
                     st.write(f"**Evidence sufficient:** {'Yes' if trace.evidence_sufficient else 'No'} — {trace.sufficiency_reason}")
                     st.write(f"**Generation:** {trace.final_generation_mode}")
+                    st.write(f"**Effective query:** {trace.effective_question}")
 
-            if response.sources:
-                st.markdown(
-                    '<div class="section-heading">Sources used</div>',
-                    unsafe_allow_html=True,
-                )
-                for source in response.sources:
-                    st.markdown(f"- `{source}`")
-
-            st.markdown(
-                '<div class="section-heading">Retrieved evidence</div>',
-                unsafe_allow_html=True,
-            )
-            for item in response.retrieved_evidence:
-                st.markdown(
-                    f"**{item.rank}. {item.source_document}** · "
-                    f"`{item.section}` · score `{item.score:.3f}`"
-                )
-                if item.selection_reason:
-                    st.caption(item.selection_reason)
-                if item.relationship_type:
-                    st.caption(
-                        f"Graph fact: {' → '.join(item.entity_path)} · {item.relationship_type}"
+            with st.expander("Retrieved evidence"):
+                for item in response.retrieved_evidence:
+                    st.markdown(
+                        f"**{item.rank}. {item.source_document}** · "
+                        f"`{item.section}` · score `{item.score:.3f}`"
                     )
-                st.write(item.text)
-                st.divider()
+                    if item.selection_reason:
+                        st.caption(item.selection_reason)
+                    if item.relationship_type:
+                        st.caption(
+                            f"Graph fact: {' → '.join(item.entity_path)} · {item.relationship_type}"
+                        )
+                    st.write(item.text)
+                    st.divider()
 
 elif selected_page == "Evaluation":
     st.markdown('<div class="eyebrow">Retrieval quality</div>', unsafe_allow_html=True)
@@ -866,48 +912,33 @@ elif selected_page == "Evaluation":
         knowledge_graph: KnowledgeGraph = st.session_state.knowledge_graph
         questions = json.loads(GROUND_TRUTH_PATH.read_text(encoding="utf-8"))
 
-        keyword_metrics = evaluate_retrieval(
-            questions,
-            lambda question, top_k: search_documents(documents, question)[:top_k],
-        )
-        semantic_metrics = evaluate_retrieval(
-            questions,
-            lambda question, top_k: vector_index.search(question, top_k),
-        )
-        graph_metrics = evaluate_retrieval(
-            questions,
-            lambda question, top_k: search_graph(question, knowledge_graph, chunks, top_k),
-        )
-        hybrid_metrics = evaluate_retrieval(
-            questions,
-            lambda question, top_k: search_hybrid(question, chunks, vector_index, knowledge_graph, top_k),
-        )
-        from backend.retrieval_evaluation import mean_reciprocal_rank, evaluate_by_question_type
+        from backend.retrieval_evaluation import evaluate_metrics, evaluate_by_question_type
         strategies = {
-            "Keyword": lambda question, top_k: search_documents(documents, question)[:top_k],
-            "Semantic": lambda question, top_k: vector_index.search(question, top_k),
+            "Keyword": lambda question, top_k: search_chunks(chunks, question, top_k),
+            "Vector / hash" if vector_index.embedding_model.backend == "numpy-hash-fallback" else "Semantic":
+                lambda question, top_k: vector_index.search(question, top_k),
             "Graph": lambda question, top_k: search_graph(question, knowledge_graph, chunks, top_k),
             "Hybrid": lambda question, top_k: search_hybrid(question, chunks, vector_index, knowledge_graph, top_k),
         }
-        st.markdown('<div class="section-heading">Recall comparison</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-heading">Retrieval metrics</div>', unsafe_allow_html=True)
         st.dataframe(
-            [{"Strategy": name, "Recall@1": f"{metrics[1]:.0%}", "Recall@3": f"{metrics[3]:.0%}", "Recall@5": f"{metrics[5]:.0%}", "MRR": f"{mean_reciprocal_rank(questions, retrieve):.0%}"} for name, metrics, retrieve in [
-                ("Keyword", keyword_metrics, strategies["Keyword"]),
-                ("Semantic", semantic_metrics, strategies["Semantic"]),
-                ("Graph", graph_metrics, strategies["Graph"]),
-                ("Hybrid", hybrid_metrics, strategies["Hybrid"]),
-            ]],
+            [{"Strategy": name, **{metric: f"{value:.1%}" for metric, value in
+                evaluate_metrics(questions, retrieve).items()}}
+             for name, retrieve in strategies.items()],
             hide_index=True,
             use_container_width=True,
         )
+        st.caption("Recall counts distinct expected documents. Precision divides distinct relevant documents by K; repeated documents and missing slots receive no credit. MRR uses the first relevant result within five slots.")
         st.markdown('<div class="section-heading">By question type</div>', unsafe_allow_html=True)
-        breakdown_rows = []
-        for question_type in sorted({question["question_type"] for question in questions}):
-            row = {"Question type": question_type}
-            for name, retrieve in strategies.items():
-                row[name] = f"{evaluate_by_question_type(questions, retrieve)[question_type]['Recall@3']:.0%} R@3"
-            breakdown_rows.append(row)
-        st.dataframe(breakdown_rows, hide_index=True, use_container_width=True)
+        breakdown = {name: evaluate_by_question_type(questions, retrieve)
+                     for name, retrieve in strategies.items()}
+        st.dataframe(
+            [{"Question type": kind, **{name: f"{values[kind]['Recall@3']:.1%} R@3"
+                for name, values in breakdown.items()}}
+             for kind in sorted({question["question_type"] for question in questions})],
+            hide_index=True,
+            use_container_width=True,
+        )
         st.caption(f"Evaluated {len(questions)} ground-truth questions. Semantic backend: {vector_index.embedding_model.backend}. Graph retrieval uses explicit entity relationships only.")
 else:
     st.markdown(f'<div class="eyebrow">Workspace module</div><div class="module-heading">{selected_page}</div><div class="module-copy">A focused space for the next stage of the enterprise knowledge workflow.</div>', unsafe_allow_html=True)

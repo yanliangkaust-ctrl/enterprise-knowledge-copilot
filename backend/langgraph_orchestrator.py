@@ -7,7 +7,10 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from backend.answer_generation import evidence_items_from_results, generate_grounded_answer
+from backend.answer_generation import _supported_evidence, evidence_items_from_results, generate_grounded_answer
+from backend.factual_support import unsupported_facets
+from backend.resilience import ServiceFailure, boundary, degraded
+from backend.observability import decision, emit, record_metadata, stage, timed
 from backend.agentic_orchestrator import (
     AgentExecutionTrace,
     AgenticResult,
@@ -55,8 +58,10 @@ class AgentGraphState(TypedDict, total=False):
     trace: AgentExecutionTrace
     tool_executions: list[ToolExecution]
     operational_results: list[IncidentStatus]
+    retrieval_checks: list[dict[str, object]]
 
 
+@timed("context")
 def build_context(state: AgentGraphState) -> dict[str, Any]:
     selected_context = build_relevant_context(
         state["question"], state.get("session_context")
@@ -70,6 +75,7 @@ def build_context(state: AgentGraphState) -> dict[str, Any]:
     }
 
 
+@timed("routing")
 def route_query(state: AgentGraphState) -> dict[str, Any]:
     question = state["effective_question"]
     tokens = set(question.casefold().split())
@@ -105,6 +111,30 @@ def route_query(state: AgentGraphState) -> dict[str, Any]:
     }
 
 
+def _graph_weakness(question: str, effective_question: str, results: Sequence[object], observation: dict | None = None) -> str | None:
+    """Bounded pre-generation check using existing relevance and factual checks.
+
+Nonempty graph matches can still lack text support. This is a fallback trigger,
+not permission to answer: the unchanged final sufficiency gate always runs.
+"""
+    def checked(code, reason):
+        if observation is not None:
+            observation["reason_code"] = code
+        emit("graph_support_check", reason_code=code, supported=reason is None)
+        return reason
+
+    if not results:
+        return checked("graph_empty", "Graph search returned no direct evidence.")
+    evidence = evidence_items_from_results(results)
+    if not _supported_evidence(effective_question, evidence):
+        return checked("graph_weak_text_support", "Graph evidence has no question-relevant textual support.")
+    missing = unsupported_facets(question, evidence)
+    if missing:
+        return checked("graph_missing_fact_support", "Graph evidence lacks requested factual support: " + ", ".join(missing) + ".")
+    return checked("graph_support_adequate", None)
+
+
+@timed("retrieval_orchestration")
 def retrieve_tool(state: AgentGraphState) -> dict[str, Any]:
     decisions = list(state["tool_decisions"])
     executions: list[ToolExecution] = []
@@ -122,6 +152,8 @@ def retrieve_tool(state: AgentGraphState) -> dict[str, Any]:
         ))
 
     if not state.get("retrieval_requested"):
+        record_metadata(original_route="incident_status_tool", final_route="incident_status_tool", selected_count=0,
+                        fallback_activated=False)
         return {
             "tool_decisions": decisions,
             "results": [],
@@ -132,52 +164,97 @@ def retrieve_tool(state: AgentGraphState) -> dict[str, Any]:
 
     primary = next(decision for decision in decisions if decision.tool != "incident_status_tool")
     retrieval_top_k = max(state["top_k"], 20) if state.get("selected_context") else state["top_k"]
-    results = _run_tool(
-        primary.tool,
-        state["effective_question"],
-        state["chunks"],
-        state["vector_index"],
-        state["knowledge_graph"],
-        retrieval_top_k,
-    )
+    record_metadata(original_route=primary.tool, requested_k=state["top_k"], effective_k=retrieval_top_k)
+    degraded_route = None
+    try:
+        with boundary({"semantic_search": "vector_retrieval_failed", "vector_search": "vector_retrieval_failed"}.get(primary.tool, primary.tool.replace("_search", "_retrieval_failed"))), stage("primary_retrieval"):
+            results = _run_tool(
+                primary.tool,
+                state["effective_question"],
+                state["chunks"],
+                state["vector_index"],
+                state["knowledge_graph"],
+                retrieval_top_k,
+            )
+    except ServiceFailure as exc:
+        if primary.tool not in {"graph_search", "semantic_search", "vector_search"}:
+            raise
+        degraded_route = "semantic_search" if primary.tool == "graph_search" else "graph_search"
+        with boundary("fallback_retrieval_failed", 503), stage("fallback_retrieval"):
+            results = _run_tool(degraded_route, state["effective_question"], state["chunks"],
+                                state["vector_index"], state["knowledge_graph"], retrieval_top_k)
+        if not results:
+            raise ServiceFailure("fallback_retrieval_failed", 503)
+        degraded(exc.code, "graph" if primary.tool == "graph_search" else "vector", degraded_route)
+        decisions.append(ToolDecision(degraded_route, "Independent retriever used after component failure."))
+    emit("retrieval_completed", retriever=degraded_route or primary.tool, selected_count=len(results),
+         effective_k=retrieval_top_k, min_score=min((r.score for r in results), default=None),
+         max_score=max((r.score for r in results), default=None))
 
-    if primary.tool == "graph_search" and not results:
+    weakness = None
+    retrieval_checks = []
+    if primary.tool == "graph_search" and not degraded_route:
+        observation = {}
+        weakness = _graph_weakness(state["question"], state["effective_question"], results, observation)
+        retrieval_checks.append({
+            "reason_code": observation["reason_code"],
+            "original_mode": "graph_search",
+            "status": "empty" if not results else "weak_support" if weakness else "adequate_support",
+            "reason": weakness or "Graph evidence passes existing text-relevance and requested-facet checks.",
+            "original_evidence": [e.model_dump() for e in evidence_items_from_results(results)],
+            "fallback_activated": bool(weakness),
+            "final_mode": "hybrid_search" if weakness else "graph_search",
+        })
+    if weakness:
+        emit("graph_fallback", reason_code=observation["reason_code"], fallback_activated=True,
+             original_route=primary.tool, final_route="hybrid_search")
         decisions.append(
             ToolDecision(
                 "hybrid_search",
-                "Graph search returned no direct evidence, so hybrid retrieval broadens recall while retaining graph signals.",
+                weakness + " Activating hybrid fallback while retaining graph signals; final evidence checks still apply.",
             )
         )
-        results = _run_tool(
-            "hybrid_search",
-            state["effective_question"],
-            state["chunks"],
-            state["vector_index"],
-            state["knowledge_graph"],
-            retrieval_top_k,
-        )
+        with boundary("fallback_retrieval_failed", 503), stage("fallback_retrieval"):
+            results = _run_tool(
+                "hybrid_search",
+                state["effective_question"],
+                state["chunks"],
+                state["vector_index"],
+                state["knowledge_graph"],
+                retrieval_top_k,
+            )
+        emit("retrieval_completed", retriever="hybrid_search", selected_count=len(results),
+             effective_k=retrieval_top_k, min_score=min((r.score for r in results), default=None),
+             max_score=max((r.score for r in results), default=None))
 
+    record_metadata(final_route=degraded_route or ("hybrid_search" if weakness else primary.tool), selected_count=len(results),
+                    fallback_activated=bool(weakness or degraded_route))
     return {
         "tool_decisions": decisions,
         "results": results,
         "evidence": evidence_items_from_results(results),
         "tool_executions": executions,
         "operational_results": operational_results,
+        "retrieval_checks": retrieval_checks,
     }
 
 
+@timed("evidence_evaluation")
 def evaluate_evidence(state: AgentGraphState) -> dict[str, Any]:
     if state.get("retrieval_requested"):
-        draft_response = generate_grounded_answer(
-            state["effective_question"],
-            state["evidence"],
-            mode=state["generation_mode"],
-        )
-        sufficient, reason = _evidence_sufficient(
-            state["question"],
-            draft_response,
-            state["results"],
-        )
+        with boundary("generation_failed"):
+            draft_response = generate_grounded_answer(
+                state["effective_question"],
+                state["evidence"],
+                mode=state["generation_mode"],
+            )
+        with boundary("sufficiency_internal_error"):
+            sufficient, reason = _evidence_sufficient(
+                state["question"],
+                draft_response,
+                state["results"],
+                state["knowledge_graph"],
+            )
     else:
         draft_response = GroundedResponse(
             answer="",
@@ -196,6 +273,8 @@ def evaluate_evidence(state: AgentGraphState) -> dict[str, Any]:
     if state.get("route_mode") == "combined" and not state.get("operational_results"):
         sufficient = False
         reason = "No simulated operational record exists for the requested incident."
+    if not state.get("retrieval_requested") or (state.get("route_mode") == "combined" and not state.get("operational_results")):
+        decision("operational_record_found" if sufficient else "operational_record_not_found", sufficient)
     return {
         "draft_response": draft_response,
         "evidence_sufficient": sufficient,
@@ -207,6 +286,7 @@ def _evidence_route(state: AgentGraphState) -> str:
     return "generate_answer" if state["evidence_sufficient"] else "return_insufficient_evidence"
 
 
+@timed("response_finalization")
 def generate_answer(state: AgentGraphState) -> dict[str, Any]:
     response = state["draft_response"]
     operational = state.get("operational_results", [])
@@ -219,6 +299,7 @@ def generate_answer(state: AgentGraphState) -> dict[str, Any]:
     return {"response": response}
 
 
+@timed("refusal_finalization")
 def return_insufficient_evidence(state: AgentGraphState) -> dict[str, Any]:
     draft_response = state["draft_response"]
     response = draft_response
@@ -233,6 +314,7 @@ def return_insufficient_evidence(state: AgentGraphState) -> dict[str, Any]:
     return {"response": response}
 
 
+@timed("trace_finalization")
 def finalize_trace(state: AgentGraphState) -> dict[str, Any]:
     response = state["response"]
     return {
@@ -244,6 +326,8 @@ def finalize_trace(state: AgentGraphState) -> dict[str, Any]:
             sufficiency_reason=state["sufficiency_reason"],
             final_generation_mode=response.generation_mode,
             tool_executions=state.get("tool_executions", []),
+            effective_question=state["effective_question"],
+            retrieval_checks=state.get("retrieval_checks", []),
         )
     }
 
@@ -276,6 +360,7 @@ def build_agent_graph():
     return workflow.compile()
 
 
+@timed("orchestration")
 def ask_agentic_langgraph(
     question: str,
     chunks: Sequence[ChunkRecord],

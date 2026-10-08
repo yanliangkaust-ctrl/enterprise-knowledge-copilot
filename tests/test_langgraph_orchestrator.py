@@ -2,10 +2,10 @@ from pathlib import Path
 
 from backend.agentic_orchestrator import ask_agentic
 from backend.langgraph_orchestrator import ask_agentic_langgraph, build_agent_graph
-from backend.document_ingestion import chunk_documents, load_markdown_documents
+from backend.document_ingestion import chunk_documents, load_markdown_documents, parse_markdown_content
 from backend.graph_builder import build_knowledge_graph
 from backend.semantic_retrieval import LocalEmbeddingModel, VectorIndex
-from backend.session_context import InMemorySessionStore
+from backend.session_context import InMemorySessionStore, build_relevant_context, has_follow_up_reference
 
 PROJECT_ROOT = Path(__file__).parents[1]
 SAMPLE_DOCS = PROJECT_ROOT / "data" / "sample_docs"
@@ -13,6 +13,24 @@ SAMPLE_DOCS = PROJECT_ROOT / "data" / "sample_docs"
 
 def _kb():
     chunks = chunk_documents(load_markdown_documents(SAMPLE_DOCS))
+    index = VectorIndex(LocalEmbeddingModel(use_sentence_transformer=False))
+    index.build(chunks)
+    graph = build_knowledge_graph(chunks)
+    return chunks, index, graph
+
+
+def _payment_policy_kb():
+    document = parse_markdown_content(
+        "payment_p1_policy.md",
+        """# Payment Service P1 Incident Policy
+
+## Initial Escalation
+
+For a P1 Payment Service incident, the Incident Commander must be notified within 10 minutes of confirmation.
+
+If the Incident Commander is unavailable, the Director of Platform Operations is the backup escalation contact.""",
+    )
+    chunks = chunk_documents([document])
     index = VectorIndex(LocalEmbeddingModel(use_sentence_transformer=False))
     index.build(chunks)
     graph = build_knowledge_graph(chunks)
@@ -87,3 +105,59 @@ def test_langgraph_context_resolves_follow_up_without_changing_evidence_boundary
     assert follow_up.trace.evidence_sufficient is True
     assert "Platform Engineering Team" in follow_up.response.answer
     assert follow_up.response.retrieved_evidence
+
+
+def test_payment_incident_follow_up_resolves_recipient_and_preserves_session():
+    chunks, index, graph = _payment_policy_kb()
+    store = InMemorySessionStore()
+    session_id = "payment-incident-session"
+    first_question = "Who should be notified first during a P1 Payment Service incident?"
+
+    first = ask_agentic(first_question, chunks, index, graph)
+    assert first.response.grounding_status == "Grounded in retrieved evidence"
+    assert "Incident Commander" in first.response.answer
+    store.record(session_id, first_question, first.response, graph)
+
+    follow_up_question = "What if they're unavailable?"
+    prior_context = store.get(session_id)
+    assert len(prior_context.recent_turns) == 1
+    assert prior_context.recent_turns[0].question == first_question
+    assert has_follow_up_reference(follow_up_question)
+    assert build_relevant_context(follow_up_question, prior_context)
+
+    follow_up = ask_agentic(
+        follow_up_question,
+        chunks,
+        index,
+        graph,
+        session_context=store.get(session_id),
+    )
+
+    assert "Incident Commander" in follow_up.trace.effective_question
+    assert "P1 Payment Service incident" in follow_up.trace.effective_question
+    assert any(item.source_document == "payment_p1_policy.md" for item in follow_up.response.retrieved_evidence)
+    assert "Director of Platform Operations" in follow_up.response.answer
+    assert "backup escalation contact" in follow_up.response.answer
+    assert follow_up.response.grounding_status == "Grounded in retrieved evidence"
+
+
+def test_new_session_does_not_inherit_payment_incident_context():
+    chunks, index, graph = _payment_policy_kb()
+    store = InMemorySessionStore()
+    first_question = "Who should be notified first during a P1 Payment Service incident?"
+    first = ask_agentic(first_question, chunks, index, graph)
+    store.record("first-session", first_question, first.response, graph)
+
+    new_session_context = store.get("new-session")
+    assert not new_session_context.recent_turns
+    assert not build_relevant_context("What if they're unavailable?", new_session_context)
+    isolated = ask_agentic(
+        "What if they're unavailable?",
+        chunks,
+        index,
+        graph,
+        session_context=new_session_context,
+    )
+
+    assert "Incident Commander" not in isolated.trace.effective_question
+    assert "P1 Payment Service incident" not in isolated.trace.effective_question

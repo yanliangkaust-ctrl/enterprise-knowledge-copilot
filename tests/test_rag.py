@@ -3,7 +3,9 @@ from pathlib import Path
 from backend.answer_generation import evidence_items_from_results, generate_grounded_answer
 from backend.context_builder import build_context
 from backend.document_ingestion import chunk_documents, load_markdown_documents
+from backend.knowledge_base import KnowledgeBase
 from backend.prompt_builder import GROUNDED_SYSTEM_PROMPT, build_grounded_prompt
+from backend.rag_pipeline import ask_knowledge
 from backend.rag_schema import EvidenceItem, GroundedResponse
 from backend.semantic_retrieval import LocalEmbeddingModel, VectorIndex
 
@@ -115,3 +117,36 @@ def test_ask_knowledge_pipeline_retrieves_then_generates_traceable_answer():
     assert response.sources
     assert response.sources[0] == response.retrieved_evidence[0].source_document
     assert response.grounding_status == "Grounded in retrieved evidence"
+
+
+def test_uploaded_markdown_refreshes_shared_index_and_is_retrievable():
+    knowledge_base = KnowledgeBase(LocalEmbeddingModel(use_sentence_transformer=False))
+    original_index = knowledge_base.vector_index
+    filename = "Admin_Quartz_Archive.md"
+    content = (
+        "# Cobalt Relay\n"
+        "Cobalt Relay uses the Quartz Lattice protocol to replicate the archive "
+        "every 17 minutes from the northern storage vault."
+    )
+
+    document = knowledge_base.ingest_markdown(filename, content)
+
+    assert document.name == filename
+    assert document.metadata["filename"] == filename
+    assert knowledge_base.chunks[0].document_name == filename
+    assert knowledge_base.chunks[0].source == filename
+    assert knowledge_base.vector_index is original_index
+    assert knowledge_base.vector_index.chunks == knowledge_base.chunks
+
+    response = ask_knowledge(
+        "What protocol does Cobalt Relay use to replicate the archive?",
+        knowledge_base.chunks,
+        knowledge_base.vector_index,
+        knowledge_base.knowledge_graph,
+        retrieval_mode="Semantic",
+        generation_mode="Demo / Local",
+    )
+
+    assert filename in response.sources
+    assert response.retrieved_evidence[0].source_document == filename
+    assert "Quartz Lattice" in response.retrieved_evidence[0].text

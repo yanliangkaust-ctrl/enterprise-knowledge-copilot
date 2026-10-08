@@ -1,0 +1,50 @@
+{
+  "after_outcomes": {
+    "answerable_questions": 4,
+    "false_refusal_count": 1,
+    "false_refusal_rate": 0.25,
+    "path": "agentic; supplemental only",
+    "required_fact_count": 6,
+    "required_fact_coverage": 0.3333333333333333,
+    "source_supported_fact_coverage": 0.3333333333333333,
+    "unsupported_acceptance_count": 0,
+    "unsupported_acceptance_rate": 0.0,
+    "unsupported_questions": 4
+  },
+  "after_report": "phase2b1_after.json",
+  "before_outcomes": {
+    "answerable_questions": 4,
+    "false_refusal_count": 0,
+    "false_refusal_rate": 0.0,
+    "path": "agentic; supplemental only",
+    "required_fact_count": 6,
+    "required_fact_coverage": 0.3333333333333333,
+    "source_supported_fact_coverage": 0.3333333333333333,
+    "unsupported_acceptance_count": 2,
+    "unsupported_acceptance_rate": 0.5,
+    "unsupported_questions": 4
+  },
+  "before_report": "phase2b1_before.json",
+  "benchmark_unchanged": true,
+  "corpus_unchanged": true,
+  "designated_critical_unchanged": true,
+  "original_false_refusals_after": [
+    "q08",
+    "q10"
+  ],
+  "original_false_refusals_before": [
+    "q08",
+    "q10"
+  ],
+  "phase2a_gate": {
+    "baseline_checked": true,
+    "errors": [],
+    "passed": true,
+    "repeat_equal": true
+  },
+  "phase2b1_rollout_criteria_met": false,
+  "retrieval_aggregates_unchanged": true,
+  "retrieval_changes": [],
+  "status": "Candidate implemented and tested; stop here. Not promoted or rebaselined because supplemental false refusals increased.",
+  "tradeoff": "Supplemental s04 now refuses because the frozen retrieved Top-5 lacks protocol evidence for its requested subject. Accepting it would bypass the requested-facet check. No retrieval changes or benchmark changes were made."
+}

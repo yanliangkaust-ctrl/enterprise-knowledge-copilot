@@ -1,0 +1,33 @@
+{
+  "reports_identical": true,
+  "standalone_ranks_scores_unchanged": true,
+  "s04_q08_q10_unchanged": true,
+  "healthy_hybrid_unchanged": true,
+  "top_k": 5,
+  "gate": {
+    "baseline_checked": true,
+    "errors": [],
+    "passed": true,
+    "repeat_equal": true
+  },
+  "outcomes": {
+    "answerable_questions": 4,
+    "false_refusal_count": 0,
+    "false_refusal_rate": 0.0,
+    "path": "agentic; supplemental only",
+    "required_fact_count": 6,
+    "required_fact_coverage": 0.5,
+    "source_supported_fact_coverage": 0.5,
+    "unsupported_acceptance_count": 0,
+    "unsupported_acceptance_rate": 0.0,
+    "unsupported_questions": 4
+  },
+  "original_false_refusals": 0,
+  "designated_critical_failures": 0,
+  "tests": {
+    "resilience": 20,
+    "observability": 8,
+    "full": 167,
+    "failed": 0
+  }
+}

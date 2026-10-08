@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from backend.document_ingestion import ChunkRecord
 from backend.entity_extraction import normalize_entity_id
 from backend.knowledge_graph import KnowledgeGraph
+from backend.observability import emit, timed
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,7 @@ def match_question_entities(question: str, graph: KnowledgeGraph) -> list:
     return [entity for entity in graph.entities() if entity.name in matched_names]
 
 
+@timed("graph_retrieval")
 def search_graph(
     question: str,
     graph: KnowledgeGraph,
@@ -83,6 +85,8 @@ def search_graph(
             key = (chunk.chunk_id, relationship.relationship_id)
             candidates[key] = result
 
+    emit("retrieval_candidates", retriever="graph_search", candidate_count=len(candidates),
+         selected_count=min(len(candidates), top_k), effective_k=top_k)
     ranked = sorted(candidates.values(), key=lambda result: (-result.score, result.chunk.document_name, result.chunk.chunk_id))
     return [
         GraphRetrievalResult(

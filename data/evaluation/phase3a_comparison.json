@@ -1,0 +1,32 @@
+{
+  "after_report": "phase3a_after.json",
+  "before_report": "phase3a_before.json",
+  "gate": {
+    "baseline_checked": true,
+    "errors": [],
+    "passed": true,
+    "repeat_equal": true
+  },
+  "original_false_refusals": 0,
+  "outcomes": {
+    "answerable_questions": 4,
+    "false_refusal_count": 0,
+    "false_refusal_rate": 0.0,
+    "path": "agentic; supplemental only",
+    "required_fact_count": 6,
+    "required_fact_coverage": 0.5,
+    "source_supported_fact_coverage": 0.5,
+    "unsupported_acceptance_count": 0,
+    "unsupported_acceptance_rate": 0.0,
+    "unsupported_questions": 4
+  },
+  "reports_identical": true,
+  "s04_q08_q10_unchanged": true,
+  "standalone_scores_and_ranks_unchanged": true,
+  "tests": {
+    "failed": 0,
+    "focused_passed": 8,
+    "full_passed": 147
+  },
+  "top_k": 5
+}

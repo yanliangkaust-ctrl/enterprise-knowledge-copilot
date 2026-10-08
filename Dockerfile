@@ -2,15 +2,18 @@ FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    KNOWLEDGE_STORE_DIR=/knowledge \
+    KNOWLEDGE_EMBEDDING_BACKEND=hash
 
 WORKDIR /app
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements-release.txt ./
+RUN pip install --no-cache-dir -r requirements-release.txt && pip check
 
 COPY backend ./backend
-COPY data ./data
+COPY data/sample_docs ./data/sample_docs
+RUN mkdir -p /knowledge
 
 EXPOSE 8000
 

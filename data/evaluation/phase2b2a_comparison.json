@@ -1,0 +1,589 @@
+{
+  "acceptance": {
+    "factual_predicate_unchanged": true,
+    "no_critical_failures": true,
+    "raw_scores_unchanged": true,
+    "top_k_unchanged": true,
+    "unsupported_acceptance_zero": true
+  },
+  "after_report": "phase2b2a_after.json",
+  "aggregates_after": {
+    "original": {
+      "agentic": {
+        "Hit Rate@1": 0.5,
+        "Hit Rate@3": 0.9,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.6666666666666667,
+        "Precision@1": 0.5,
+        "Precision@3": 0.4,
+        "Precision@5": 0.24000000000000005,
+        "Recall@1": 0.3,
+        "Recall@3": 0.7166666666666667,
+        "Recall@5": 0.7166666666666667,
+        "positive_questions": 10
+      },
+      "graph": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.6,
+        "Hit Rate@5": 0.6,
+        "MRR@5": 0.4666666666666667,
+        "Precision@1": 0.4,
+        "Precision@3": 0.2,
+        "Precision@5": 0.12000000000000002,
+        "Recall@1": 0.26666666666666666,
+        "Recall@3": 0.4166666666666667,
+        "Recall@5": 0.4166666666666667,
+        "positive_questions": 10
+      },
+      "hybrid": {
+        "Hit Rate@1": 0.3,
+        "Hit Rate@3": 0.9,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.575,
+        "Precision@1": 0.3,
+        "Precision@3": 0.4,
+        "Precision@5": 0.28,
+        "Recall@1": 0.16666666666666666,
+        "Recall@3": 0.7166666666666667,
+        "Recall@5": 0.85,
+        "positive_questions": 10
+      },
+      "keyword": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.7,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.5616666666666666,
+        "Precision@1": 0.4,
+        "Precision@3": 0.26666666666666666,
+        "Precision@5": 0.28,
+        "Recall@1": 0.23333333333333334,
+        "Recall@3": 0.5,
+        "Recall@5": 0.7833333333333333,
+        "positive_questions": 10
+      },
+      "vector_hash": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.8,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.5866666666666667,
+        "Precision@1": 0.4,
+        "Precision@3": 0.3333333333333333,
+        "Precision@5": 0.26,
+        "Recall@1": 0.21666666666666665,
+        "Recall@3": 0.5666666666666667,
+        "Recall@5": 0.75,
+        "positive_questions": 10
+      }
+    },
+    "supplemental": {
+      "agentic": {
+        "Evidence Precision@1": 0.75,
+        "Evidence Precision@3": 0.25,
+        "Evidence Precision@5": 0.15000000000000002,
+        "Evidence Recall@1": 0.625,
+        "Evidence Recall@3": 0.625,
+        "Evidence Recall@5": 0.625,
+        "Hit Rate@1": 0.75,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.8333333333333334,
+        "Precision@1": 0.75,
+        "Precision@3": 0.41666666666666663,
+        "Precision@5": 0.25,
+        "Recall@1": 0.625,
+        "Recall@3": 1.0,
+        "Recall@5": 1.0,
+        "positive_questions": 4
+      },
+      "graph": {
+        "Evidence Precision@1": 0.0,
+        "Evidence Precision@3": 0.0,
+        "Evidence Precision@5": 0.0,
+        "Evidence Recall@1": 0.0,
+        "Evidence Recall@3": 0.0,
+        "Evidence Recall@5": 0.0,
+        "Hit Rate@1": 0.0,
+        "Hit Rate@3": 0.25,
+        "Hit Rate@5": 0.25,
+        "MRR@5": 0.08333333333333333,
+        "Precision@1": 0.0,
+        "Precision@3": 0.08333333333333333,
+        "Precision@5": 0.05,
+        "Recall@1": 0.0,
+        "Recall@3": 0.25,
+        "Recall@5": 0.25,
+        "positive_questions": 4
+      },
+      "hybrid": {
+        "Evidence Precision@1": 0.75,
+        "Evidence Precision@3": 0.25,
+        "Evidence Precision@5": 0.15000000000000002,
+        "Evidence Recall@1": 0.625,
+        "Evidence Recall@3": 0.625,
+        "Evidence Recall@5": 0.625,
+        "Hit Rate@1": 0.75,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.8333333333333334,
+        "Precision@1": 0.75,
+        "Precision@3": 0.41666666666666663,
+        "Precision@5": 0.25,
+        "Recall@1": 0.625,
+        "Recall@3": 1.0,
+        "Recall@5": 1.0,
+        "positive_questions": 4
+      },
+      "keyword": {
+        "Evidence Precision@1": 0.5,
+        "Evidence Precision@3": 0.25,
+        "Evidence Precision@5": 0.15000000000000002,
+        "Evidence Recall@1": 0.5,
+        "Evidence Recall@3": 0.625,
+        "Evidence Recall@5": 0.625,
+        "Hit Rate@1": 0.5,
+        "Hit Rate@3": 0.75,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.6333333333333333,
+        "Precision@1": 0.5,
+        "Precision@3": 0.25,
+        "Precision@5": 0.2,
+        "Recall@1": 0.5,
+        "Recall@3": 0.625,
+        "Recall@5": 0.875,
+        "positive_questions": 4
+      },
+      "vector_hash": {
+        "Evidence Precision@1": 0.75,
+        "Evidence Precision@3": 0.3333333333333333,
+        "Evidence Precision@5": 0.2,
+        "Evidence Recall@1": 0.625,
+        "Evidence Recall@3": 0.75,
+        "Evidence Recall@5": 0.75,
+        "Hit Rate@1": 0.75,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.875,
+        "Precision@1": 0.75,
+        "Precision@3": 0.41666666666666663,
+        "Precision@5": 0.25,
+        "Recall@1": 0.625,
+        "Recall@3": 1.0,
+        "Recall@5": 1.0,
+        "positive_questions": 4
+      }
+    }
+  },
+  "aggregates_before": {
+    "original": {
+      "agentic": {
+        "Hit Rate@1": 0.5,
+        "Hit Rate@3": 0.9,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.6666666666666667,
+        "Precision@1": 0.5,
+        "Precision@3": 0.4,
+        "Precision@5": 0.24000000000000005,
+        "Recall@1": 0.3,
+        "Recall@3": 0.7166666666666667,
+        "Recall@5": 0.7166666666666667,
+        "positive_questions": 10
+      },
+      "graph": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.6,
+        "Hit Rate@5": 0.6,
+        "MRR@5": 0.4666666666666667,
+        "Precision@1": 0.4,
+        "Precision@3": 0.2,
+        "Precision@5": 0.12000000000000002,
+        "Recall@1": 0.26666666666666666,
+        "Recall@3": 0.4166666666666667,
+        "Recall@5": 0.4166666666666667,
+        "positive_questions": 10
+      },
+      "hybrid": {
+        "Hit Rate@1": 0.3,
+        "Hit Rate@3": 0.9,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.575,
+        "Precision@1": 0.3,
+        "Precision@3": 0.4,
+        "Precision@5": 0.28,
+        "Recall@1": 0.16666666666666666,
+        "Recall@3": 0.7166666666666667,
+        "Recall@5": 0.85,
+        "positive_questions": 10
+      },
+      "keyword": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.7,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.5616666666666666,
+        "Precision@1": 0.4,
+        "Precision@3": 0.26666666666666666,
+        "Precision@5": 0.28,
+        "Recall@1": 0.23333333333333334,
+        "Recall@3": 0.5,
+        "Recall@5": 0.7833333333333333,
+        "positive_questions": 10
+      },
+      "vector_hash": {
+        "Hit Rate@1": 0.4,
+        "Hit Rate@3": 0.8,
+        "Hit Rate@5": 0.9,
+        "MRR@5": 0.5866666666666667,
+        "Precision@1": 0.4,
+        "Precision@3": 0.3333333333333333,
+        "Precision@5": 0.26,
+        "Recall@1": 0.21666666666666665,
+        "Recall@3": 0.5666666666666667,
+        "Recall@5": 0.75,
+        "positive_questions": 10
+      }
+    },
+    "supplemental": {
+      "agentic": {
+        "Evidence Precision@1": 0.5,
+        "Evidence Precision@3": 0.16666666666666666,
+        "Evidence Precision@5": 0.1,
+        "Evidence Recall@1": 0.5,
+        "Evidence Recall@3": 0.5,
+        "Evidence Recall@5": 0.5,
+        "Hit Rate@1": 0.5,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.7083333333333334,
+        "Precision@1": 0.5,
+        "Precision@3": 0.3333333333333333,
+        "Precision@5": 0.2,
+        "Recall@1": 0.5,
+        "Recall@3": 0.875,
+        "Recall@5": 0.875,
+        "positive_questions": 4
+      },
+      "graph": {
+        "Evidence Precision@1": 0.0,
+        "Evidence Precision@3": 0.0,
+        "Evidence Precision@5": 0.0,
+        "Evidence Recall@1": 0.0,
+        "Evidence Recall@3": 0.0,
+        "Evidence Recall@5": 0.0,
+        "Hit Rate@1": 0.0,
+        "Hit Rate@3": 0.25,
+        "Hit Rate@5": 0.25,
+        "MRR@5": 0.08333333333333333,
+        "Precision@1": 0.0,
+        "Precision@3": 0.08333333333333333,
+        "Precision@5": 0.05,
+        "Recall@1": 0.0,
+        "Recall@3": 0.25,
+        "Recall@5": 0.25,
+        "positive_questions": 4
+      },
+      "hybrid": {
+        "Evidence Precision@1": 0.5,
+        "Evidence Precision@3": 0.16666666666666666,
+        "Evidence Precision@5": 0.1,
+        "Evidence Recall@1": 0.5,
+        "Evidence Recall@3": 0.5,
+        "Evidence Recall@5": 0.5,
+        "Hit Rate@1": 0.5,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.7083333333333334,
+        "Precision@1": 0.5,
+        "Precision@3": 0.3333333333333333,
+        "Precision@5": 0.2,
+        "Recall@1": 0.5,
+        "Recall@3": 0.875,
+        "Recall@5": 0.875,
+        "positive_questions": 4
+      },
+      "keyword": {
+        "Evidence Precision@1": 0.5,
+        "Evidence Precision@3": 0.25,
+        "Evidence Precision@5": 0.15000000000000002,
+        "Evidence Recall@1": 0.5,
+        "Evidence Recall@3": 0.625,
+        "Evidence Recall@5": 0.625,
+        "Hit Rate@1": 0.5,
+        "Hit Rate@3": 0.75,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.6333333333333333,
+        "Precision@1": 0.5,
+        "Precision@3": 0.25,
+        "Precision@5": 0.2,
+        "Recall@1": 0.5,
+        "Recall@3": 0.625,
+        "Recall@5": 0.875,
+        "positive_questions": 4
+      },
+      "vector_hash": {
+        "Evidence Precision@1": 0.75,
+        "Evidence Precision@3": 0.3333333333333333,
+        "Evidence Precision@5": 0.2,
+        "Evidence Recall@1": 0.625,
+        "Evidence Recall@3": 0.75,
+        "Evidence Recall@5": 0.75,
+        "Hit Rate@1": 0.75,
+        "Hit Rate@3": 1.0,
+        "Hit Rate@5": 1.0,
+        "MRR@5": 0.875,
+        "Precision@1": 0.75,
+        "Precision@3": 0.41666666666666663,
+        "Precision@5": 0.25,
+        "Recall@1": 0.625,
+        "Recall@3": 1.0,
+        "Recall@5": 1.0,
+        "positive_questions": 4
+      }
+    }
+  },
+  "before_report": "phase2b2a_before.json",
+  "benchmark_unchanged": true,
+  "corpus_unchanged": true,
+  "critical_after": {
+    "s01/agentic/accepted": true,
+    "s01/agentic/required_fact_coverage": 1.0,
+    "s01/vector_hash/Hit Rate@1": 1.0,
+    "s05/agentic/refused": true
+  },
+  "critical_before": {
+    "s01/agentic/accepted": true,
+    "s01/agentic/required_fact_coverage": 1.0,
+    "s01/vector_hash/Hit Rate@1": 1.0,
+    "s05/agentic/refused": true
+  },
+  "gate": {
+    "baseline_checked": true,
+    "errors": [],
+    "passed": true,
+    "repeat_equal": true
+  },
+  "non_hybrid_retrievers_unchanged": true,
+  "original_false_refusals_after": [
+    "q08",
+    "q10"
+  ],
+  "original_false_refusals_before": [
+    "q08",
+    "q10"
+  ],
+  "outcomes_after": {
+    "answerable_questions": 4,
+    "false_refusal_count": 0,
+    "false_refusal_rate": 0.0,
+    "path": "agentic; supplemental only",
+    "required_fact_count": 6,
+    "required_fact_coverage": 0.5,
+    "source_supported_fact_coverage": 0.5,
+    "unsupported_acceptance_count": 0,
+    "unsupported_acceptance_rate": 0.0,
+    "unsupported_questions": 4
+  },
+  "outcomes_before": {
+    "answerable_questions": 4,
+    "false_refusal_count": 1,
+    "false_refusal_rate": 0.25,
+    "path": "agentic; supplemental only",
+    "required_fact_count": 6,
+    "required_fact_coverage": 0.3333333333333333,
+    "source_supported_fact_coverage": 0.3333333333333333,
+    "unsupported_acceptance_count": 0,
+    "unsupported_acceptance_rate": 0.0,
+    "unsupported_questions": 4
+  },
+  "raw_score_errors": [],
+  "s04_after": {
+    "evidence_metrics": {
+      "Evidence Precision@1": 1.0,
+      "Evidence Precision@3": 0.3333333333333333,
+      "Evidence Precision@5": 0.2,
+      "Evidence Recall@1": 0.5,
+      "Evidence Recall@3": 0.5,
+      "Evidence Recall@5": 0.5
+    },
+    "metrics": {
+      "Hit Rate@1": 1.0,
+      "Hit Rate@3": 1.0,
+      "Hit Rate@5": 1.0,
+      "MRR@5": 1.0,
+      "Precision@1": 1.0,
+      "Precision@3": 0.6666666666666666,
+      "Precision@5": 0.4,
+      "Recall@1": 0.5,
+      "Recall@3": 1.0,
+      "Recall@5": 1.0
+    },
+    "outcome": {
+      "accepted": true,
+      "answer": "**Summary**\n- The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes. Document Storage and the Monitoring Service remain managed platform dependencies accessed through private service endpoints.\n\n**Key findings**\n- Cobalt Relay uses the Sapphire Mesh protocol to replicate the archive every 11 minutes.\n- The Government OCR Platform will deploy the OCR Service and API Gateway on Kubernetes.\n- The Security Team approves least-privilege roles for the API Gateway, OCR Service, Document Storage, and Monitoring Service.",
+      "evidence_sufficient": true,
+      "facts": [
+        {
+          "alternatives": [
+            "Sapphire Mesh"
+          ],
+          "present": true,
+          "source_supported": true
+        },
+        {
+          "alternatives": [
+            "TLS"
+          ],
+          "present": false,
+          "source_supported": false
+        }
+      ],
+      "false_refusal": false,
+      "refused": false,
+      "required_fact_coverage": 0.5,
+      "route": [
+        "hybrid_search"
+      ],
+      "source_supported_fact_coverage": 0.5,
+      "sources": [
+        "cobalt_relay.md",
+        "ADR_Deployment.md",
+        "Security_Requirements.md",
+        "API_Specification.md",
+        "OCR_Platform_Architecture.md"
+      ],
+      "sufficiency_reason": "Retrieved enterprise evidence covers the requested question facets and supports a grounded response.",
+      "unsupported_acceptance": false
+    },
+    "top5": [
+      {
+        "chunk_id": "cobalt_relay.md::chunk-038",
+        "rank": 1,
+        "score": 0.18708286583423614,
+        "section": "Cobalt Relay",
+        "source_document": "cobalt_relay.md"
+      },
+      {
+        "chunk_id": "ADR_Deployment.md::chunk-001",
+        "rank": 2,
+        "score": 0.43644421100616454,
+        "section": "Decision",
+        "source_document": "ADR_Deployment.md"
+      },
+      {
+        "chunk_id": "Security_Requirements.md::chunk-030",
+        "rank": 3,
+        "score": 0.43644421100616454,
+        "section": "Identity and Access",
+        "source_document": "Security_Requirements.md"
+      },
+      {
+        "chunk_id": "API_Specification.md::chunk-010",
+        "rank": 4,
+        "score": 0.3,
+        "section": "Dependencies",
+        "source_document": "API_Specification.md"
+      },
+      {
+        "chunk_id": "OCR_Platform_Architecture.md::chunk-023",
+        "rank": 5,
+        "score": 0.3,
+        "section": "Teams and Dependencies",
+        "source_document": "OCR_Platform_Architecture.md"
+      }
+    ]
+  },
+  "s04_before": {
+    "evidence_metrics": {
+      "Evidence Precision@1": 0.0,
+      "Evidence Precision@3": 0.0,
+      "Evidence Precision@5": 0.0,
+      "Evidence Recall@1": 0.0,
+      "Evidence Recall@3": 0.0,
+      "Evidence Recall@5": 0.0
+    },
+    "metrics": {
+      "Hit Rate@1": 0.0,
+      "Hit Rate@3": 1.0,
+      "Hit Rate@5": 1.0,
+      "MRR@5": 0.5,
+      "Precision@1": 0.0,
+      "Precision@3": 0.3333333333333333,
+      "Precision@5": 0.2,
+      "Recall@1": 0.0,
+      "Recall@3": 0.5,
+      "Recall@5": 0.5
+    },
+    "outcome": {
+      "accepted": false,
+      "answer": "Insufficient evidence: the retrieved enterprise sources do not provide enough supported evidence for this question.",
+      "evidence_sufficient": false,
+      "facts": [
+        {
+          "alternatives": [
+            "Sapphire Mesh"
+          ],
+          "present": false,
+          "source_supported": false
+        },
+        {
+          "alternatives": [
+            "TLS"
+          ],
+          "present": false,
+          "source_supported": false
+        }
+      ],
+      "false_refusal": true,
+      "refused": true,
+      "required_fact_coverage": 0.0,
+      "route": [
+        "hybrid_search"
+      ],
+      "source_supported_fact_coverage": 0.0,
+      "sources": [],
+      "sufficiency_reason": "Retrieved evidence does not support the requested factual facet(s): protocol.",
+      "unsupported_acceptance": false
+    },
+    "top5": [
+      {
+        "chunk_id": "ADR_Deployment.md::chunk-001",
+        "rank": 1,
+        "score": 0.43644421100616454,
+        "section": "Decision",
+        "source_document": "ADR_Deployment.md"
+      },
+      {
+        "chunk_id": "Security_Requirements.md::chunk-030",
+        "rank": 2,
+        "score": 0.43644421100616454,
+        "section": "Identity and Access",
+        "source_document": "Security_Requirements.md"
+      },
+      {
+        "chunk_id": "API_Specification.md::chunk-010",
+        "rank": 3,
+        "score": 0.3,
+        "section": "Dependencies",
+        "source_document": "API_Specification.md"
+      },
+      {
+        "chunk_id": "OCR_Platform_Architecture.md::chunk-023",
+        "rank": 4,
+        "score": 0.3,
+        "section": "Teams and Dependencies",
+        "source_document": "OCR_Platform_Architecture.md"
+      },
+      {
+        "chunk_id": "UAT_Report.md::chunk-035",
+        "rank": 5,
+        "score": 0.3,
+        "section": "Results",
+        "source_document": "UAT_Report.md"
+      }
+    ]
+  },
+  "tests": {
+    "failed": 0,
+    "focused_passed": 59,
+    "full_passed": 120
+  },
+  "top_k": 5
+}

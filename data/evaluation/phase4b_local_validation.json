@@ -1,0 +1,27 @@
+{
+  "python_tests": {
+    "full": 167,
+    "phase3a": 8,
+    "phase3b": 20,
+    "failed": 0
+  },
+  "evaluation_report_identical_to_phase3b": true,
+  "evaluation_gate_passed": true,
+  "unsupported_acceptance": "0/4",
+  "original_false_refusals": "0/10",
+  "supplemental_false_refusals": "0/4",
+  "required_fact_coverage": "3/6",
+  "critical_failures": 0,
+  "top_k": 5,
+  "static_checks": [
+    "Python syntax",
+    "workflow YAML",
+    "installed pinned versions",
+    "Linux/Python 3.12 Requires-Python and dependency closure"
+  ],
+  "docker_available": false,
+  "container_build": "not executed",
+  "container_runtime": "not executed",
+  "python312_installation": "pending CI",
+  "cloud_deployed": false
+}

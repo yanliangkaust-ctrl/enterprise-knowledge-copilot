@@ -12,6 +12,7 @@ from typing import Sequence
 import numpy as np
 
 from backend.document_ingestion import ChunkRecord
+from backend.observability import emit, timed
 
 
 DEFAULT_MODEL_NAME = "all-MiniLM-L6-v2"
@@ -75,27 +76,45 @@ class VectorIndex:
 
     def __init__(self, embedding_model: LocalEmbeddingModel | None = None):
         self.embedding_model = embedding_model or LocalEmbeddingModel()
-        self.chunks: list[ChunkRecord] = []
-        self._vectors = np.empty((0, self.embedding_model.dimensions), dtype=np.float32)
+        self._state = ([], np.empty((0, self.embedding_model.dimensions), dtype=np.float32))
+
+    @property
+    def chunks(self):
+        return self._state[0]
+
+    @chunks.setter
+    def chunks(self, value):
+        self._state = (value, self._state[1])
+
+    @property
+    def _vectors(self):
+        return self._state[1]
+
+    @_vectors.setter
+    def _vectors(self, value):
+        self._state = (self._state[0], value)
 
     def build(self, chunks: Sequence[ChunkRecord]) -> None:
-        self.chunks = list(chunks)
-        if self.chunks:
-            self._vectors = self.embedding_model.encode([chunk.text for chunk in self.chunks])
-        else:
-            self._vectors = np.empty((0, self.embedding_model.dimensions), dtype=np.float32)
+        replacement = list(chunks)
+        vectors = (self.embedding_model.encode([chunk.text for chunk in replacement])
+                   if replacement else np.empty((0, self.embedding_model.dimensions), dtype=np.float32))
+        self._state = (replacement, vectors)
 
+    @timed("vector_retrieval")
     def search(self, query: str, top_k: int = 5) -> list[RetrievalResult]:
         """Return at most top_k chunks ranked by cosine similarity."""
 
-        if not self.chunks or top_k <= 0 or not query.strip():
+        chunks, vectors = self._state
+        if not chunks or top_k <= 0 or not query.strip():
             return []
         query_vector = self.embedding_model.encode(query)[0]
-        scores = self._vectors @ query_vector
+        scores = vectors @ query_vector
         ranked_indexes = np.argsort(-scores)[:top_k]
+        emit("retrieval_candidates", retriever="semantic_search", candidate_count=len(chunks),
+             selected_count=len(ranked_indexes), effective_k=top_k)
         return [
             RetrievalResult(
-                chunk=self.chunks[index],
+                chunk=chunks[index],
                 score=float(scores[index]),
                 rank=rank,
             )

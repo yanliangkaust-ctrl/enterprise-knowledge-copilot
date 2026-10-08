@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 import re
 
+from backend.observability import emit, timed
+
 
 DOCUMENT_TYPES = {
     "ADR_": "Architecture Decision Record",
@@ -62,21 +64,27 @@ def parse_markdown_document(path: Path) -> DocumentRecord:
     """Read one Markdown file and extract lightweight document metadata."""
 
     raw_text = path.read_text(encoding="utf-8")
+    return parse_markdown_content(path.name, raw_text)
+
+
+def parse_markdown_content(filename: str, raw_text: str) -> DocumentRecord:
+    """Parse Markdown text while retaining its original filename as provenance."""
+
     section_headings = [
         match.group(1).strip()
         for match in re.finditer(r"^#{1,6}\s+(.+?)\s*$", raw_text, flags=re.MULTILINE)
     ]
     words = re.findall(r"\b\w+\b", raw_text)
     metadata: dict[str, str | int] = {
-        "filename": path.name,
-        "file_size_bytes": path.stat().st_size,
+        "filename": filename,
+        "file_size_bytes": len(raw_text.encode("utf-8")),
         "word_count": len(words),
         "character_count": len(raw_text),
         "section_count": len(section_headings),
     }
     return DocumentRecord(
-        name=path.name,
-        document_type=_document_type(path.name),
+        name=filename,
+        document_type=_document_type(filename),
         raw_text=raw_text,
         section_headings=section_headings,
         metadata=metadata,
@@ -99,6 +107,7 @@ def chunk_documents(documents: list[DocumentRecord]) -> list[ChunkRecord]:
 
     chunks: list[ChunkRecord] = []
     for document in documents:
+        document_chunk_number = 0
         sections = re.split(r"^(#{1,6})\s+(.+?)\s*$", document.raw_text, flags=re.MULTILINE)
         if len(sections) <= 1:
             sections = ["", "", document.raw_text]
@@ -107,9 +116,13 @@ def chunk_documents(documents: list[DocumentRecord]) -> list[ChunkRecord]:
             text = sections[index + 2].strip()
             if not text:
                 continue
+            document_chunk_number += 1
+            chunk_id = f"{document.name}::chunk-{len(chunks) + 1:03d}"
+            if "document_id" in document.metadata:
+                chunk_id = f"{document.metadata['document_id']}::v{document.metadata['version']}::chunk-{document_chunk_number:03d}"
             chunks.append(
                 ChunkRecord(
-                    chunk_id=f"{document.name}::chunk-{len(chunks) + 1:03d}",
+                    chunk_id=chunk_id,
                     document_name=document.name,
                     document_type=document.document_type,
                     section_heading=heading,
@@ -142,6 +155,7 @@ def search_documents(documents: list[DocumentRecord], query: str) -> list[Docume
     return [document for _, document in ranked]
 
 
+@timed("keyword_retrieval")
 def search_chunks(chunks: list[ChunkRecord], query: str, top_k: int = 5) -> list[KeywordChunkResult]:
     """Return keyword-ranked chunks using the same transparent baseline strategy."""
 
@@ -158,6 +172,8 @@ def search_chunks(chunks: list[ChunkRecord], query: str, top_k: int = 5) -> list
     ]
     ranked = [(score, chunk) for score, chunk in ranked if score]
     ranked.sort(key=lambda item: (-item[0], item[1].document_name.casefold(), item[1].chunk_id))
+    emit("retrieval_candidates", retriever="keyword_search", candidate_count=len(ranked),
+         selected_count=min(len(ranked), top_k), effective_k=top_k)
     return [
         KeywordChunkResult(chunk=chunk, score=score, rank=rank)
         for rank, (score, chunk) in enumerate(ranked[:top_k], start=1)
