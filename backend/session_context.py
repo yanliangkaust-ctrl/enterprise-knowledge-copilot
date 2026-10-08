@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import re
 from threading import RLock
+from time import monotonic
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -132,16 +133,29 @@ def build_relevant_context(question: str, context: SessionContext | None) -> str
 class InMemorySessionStore:
     """Small process-local store; history is context only, never enterprise evidence."""
 
-    def __init__(self, max_turns: int = 5) -> None:
+    def __init__(self, max_turns: int = 5, max_sessions: int = 256, ttl_seconds: float = 1800, clock=monotonic) -> None:
+        if max_turns <= 0 or max_sessions <= 0 or ttl_seconds <= 0:
+            raise ValueError("Session limits must be positive")
         self.max_turns = max_turns
+        self.max_sessions, self.ttl_seconds, self._clock = max_sessions, ttl_seconds, clock
+        self._accessed = {}
         self._sessions: dict[str, SessionContext] = {}
         self._lock = RLock()
 
+    def _expire(self, now):
+        for key in list(self._sessions):
+            if now - self._accessed[key] >= self.ttl_seconds:
+                del self._sessions[key]
+                del self._accessed[key]
+
     def get(self, session_id: str) -> SessionContext:
         with self._lock:
+            now = self._clock()
+            self._expire(now)
             context = self._sessions.get(session_id)
             if context is None:
                 return SessionContext()
+            self._accessed[session_id] = now
             return SessionContext(
                 recent_turns=list(context.recent_turns),
                 current_topic=context.current_topic,
@@ -195,7 +209,14 @@ class InMemorySessionStore:
             operational_references=operational_references,
         )
         with self._lock:
+            now = self._clock()
+            self._expire(now)
+            if session_id not in self._sessions and len(self._sessions) >= self.max_sessions:
+                oldest = min(self._accessed, key=self._accessed.get)
+                del self._sessions[oldest]
+                del self._accessed[oldest]
             context = self._sessions.setdefault(session_id, SessionContext())
+            self._accessed[session_id] = now
             context.recent_turns.append(turn)
             context.recent_turns = context.recent_turns[-self.max_turns:]
             context.current_topic = ", ".join(turn.entities[:4] or turn.topics[:4])

@@ -20,6 +20,7 @@ from backend.semantic_retrieval import VectorIndex
 from backend.resilience import ServiceFailure, boundary
 from backend.observability import RequestObservabilityMiddleware, configure_json_logging, emit, stage
 from backend.session_context import InMemorySessionStore
+from backend.request_limits import ClientRateLimiter, QueryRateLimitMiddleware
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -27,8 +28,8 @@ SAMPLE_DOCS_DIR = PROJECT_ROOT / "data" / "sample_docs"
 
 
 class QueryRequest(BaseModel):
-    question: str = Field(min_length=1)
-    session_id: str | None = None
+    question: str = Field(min_length=1, max_length=2000)
+    session_id: str | None = Field(default=None, max_length=128)
 
 
 class HealthResponse(BaseModel):
@@ -83,6 +84,8 @@ async def lifespan(app):
 
 app = FastAPI(title="Enterprise Knowledge Copilot API", version="0.1.0", lifespan=lifespan)
 configure_json_logging()
+query_limiter = ClientRateLimiter()
+app.add_middleware(QueryRateLimitMiddleware, limiter=query_limiter)
 app.add_middleware(RequestObservabilityMiddleware)
 session_store = InMemorySessionStore()
 

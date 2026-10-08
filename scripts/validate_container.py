@@ -57,6 +57,16 @@ k=create_shared_knowledge_base()
 d=next(d for d in k.documents if d.name=="release_probe.md")
 print(json.dumps({"revision":k.revision,"id":d.metadata["document_id"],"version":d.metadata["version"]}))
 '''
+DEMO_FILES = {
+    "ADR_Deployment.md", "API_Specification.md", "Deployment_Guide.md",
+    "Incident_Batch_Failure.md", "OCR_Platform_Architecture.md", "Risk_Register.md",
+    "Security_Requirements.md", "UAT_Report.md",
+}
+CORPUS = '''import json,hashlib
+from backend.knowledge_base import create_shared_knowledge_base
+k=create_shared_knowledge_base()
+print(json.dumps({d.name:{"hash":hashlib.sha256(d.raw_text.encode()).hexdigest(),"version":d.metadata["version"]} for d in k.documents}))
+'''
 
 
 def main():
@@ -80,12 +90,12 @@ def main():
         ids.add(identifier)
         return status, body
 
-    def start(suffix, readonly=False):
+    def start(suffix, readonly=False, ephemeral=False):
         name = token + suffix
         names.append(name)
         options = ["run", "-d", "--name", name, "-p", "127.0.0.1::8000",
                    "-e", "KNOWLEDGE_STORE_DIR=/knowledge", "-e", "KNOWLEDGE_EMBEDDING_BACKEND=hash"]
-        options += ["--read-only"] if readonly else ["--mount", "type=volume,src=" + volume + ",dst=/knowledge"]
+        options += ["--read-only"] if readonly else [] if ephemeral else ["--mount", "type=volume,src=" + volume + ",dst=/knowledge"]
         docker(*options, args.image)
         return name
 
@@ -130,6 +140,25 @@ def main():
         report["persisted_state"] = expected
         report["checks"]["restart_replacement_persistence"] = True
         stop(replacement)
+        # Free mode: every NEW container has independent writable ephemeral storage.
+        fresh = start("-free-first", ephemeral=True)
+        free_url = wait_ready(fresh)
+        original_corpus = json.loads(docker("exec", fresh, "python", "-c", CORPUS))
+        assert set(original_corpus) == DEMO_FILES
+        assert all(d['version'] == 1 for d in original_corpus.values())
+        docker("exec", fresh, "python", "-c", UPDATE)
+        stop(fresh)
+        free_logs = subprocess.run(["docker", "logs", fresh], capture_output=True, text=True, timeout=30)
+        (output / (fresh + ".log")).write_text(free_logs.stdout + free_logs.stderr, encoding="utf-8")
+        docker("rm", fresh)
+        names.remove(fresh)
+        rebuilt = start("-free-new", ephemeral=True)
+        free_url = wait_ready(rebuilt)
+        assert json.loads(docker("exec", rebuilt, "python", "-c", CORPUS)) == original_corpus
+        assert checked_request(free_url + "/ready")[1]["document_count"] == 8
+        assert checked_request(free_url + "/query", "What depends on Kubernetes?")[1]["evidence_sufficient"]
+        report["checks"]["free_eight_document_reconstruction"] = True
+        stop(rebuilt)
         bad = start("-unwritable", readonly=True)
         assert docker("wait", bad) != "0"
         report["checks"]["unwritable_startup_fails"] = True
