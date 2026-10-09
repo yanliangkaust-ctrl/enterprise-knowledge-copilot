@@ -9,6 +9,7 @@ from langgraph.graph import END, START, StateGraph
 
 from backend.answer_generation import _supported_evidence, evidence_items_from_results, generate_grounded_answer
 from backend.factual_support import unsupported_facets
+from backend.claim_verification import verify_answer
 from backend.procedural_support import requested_operations, procedure_evidence
 from backend.resilience import ServiceFailure, boundary, degraded
 from backend.observability import decision, emit, record_metadata, stage, timed
@@ -293,12 +294,19 @@ def _evidence_route(state: AgentGraphState) -> str:
 def generate_answer(state: AgentGraphState) -> dict[str, Any]:
     response = state["draft_response"]
     operational = state.get("operational_results", [])
+    operational_text = ""
     if operational:
         operational_text = "\n\n".join(format_incident_status(item) for item in operational)
         response = response.model_copy(update={
             "answer": f"{response.answer}\n\n{operational_text}".strip(),
             "generation_mode": "Demo / Local + Simulated operational data",
         })
+    with boundary("verification_failed"):
+        verification = verify_answer(response, operational_text)
+    response = response.model_copy(update={"verification": verification.model_dump()})
+    if verification.blocked:
+        response = response.model_copy(update={"answer": "Insufficient evidence: critical answer claims could not be verified against cited evidence.", "sources": [], "grounding_status": "Insufficient evidence"})
+        return {"response": response, "evidence_sufficient": False, "sufficiency_reason": "Post-generation verification blocked unsupported or unevaluated critical claims."}
     return {"response": response}
 
 

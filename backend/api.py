@@ -4,6 +4,11 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 import sqlite3
+import os
+from urllib.parse import urlparse
+from fastapi.middleware.cors import CORSMiddleware
+from backend.claim_verification import verify_answer, review_signal
+from backend.public_graph import corpus_graph
 from pathlib import Path
 from uuid import uuid4
 
@@ -63,6 +68,8 @@ class QueryResponse(BaseModel):
     provenance: list[EvidenceItem]
     execution_trace: ExecutionTraceResponse
     session_id: str
+    verification: dict = Field(default_factory=dict)
+    review: dict = Field(default_factory=dict)
     operational_data: list[dict[str, object]]
 
 
@@ -84,10 +91,22 @@ async def lifespan(app):
 
 app = FastAPI(title="Enterprise Knowledge Copilot API", version="0.1.0", lifespan=lifespan)
 configure_json_logging()
+# Explicit production origins only. Unset means cross-origin access is disabled.
+origins = [v.strip() for v in os.getenv("FRONTEND_ORIGINS", "").split(",") if v.strip()]
+if any(urlparse(v).scheme != "https" or not urlparse(v).netloc or urlparse(v).path or "*" in v or urlparse(v).query or urlparse(v).fragment or urlparse(v).username for v in origins):
+    raise ValueError("FRONTEND_ORIGINS must contain exact HTTPS origins")
 query_limiter = ClientRateLimiter()
 app.add_middleware(QueryRateLimitMiddleware, limiter=query_limiter)
 app.add_middleware(RequestObservabilityMiddleware)
+if origins:
+    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET","POST"], allow_headers=["Content-Type"], expose_headers=["X-Request-ID","Retry-After"], allow_credentials=False)
+
 session_store = InMemorySessionStore()
+
+
+@app.get("/graph")
+def graph_overview():
+    return corpus_graph()
 
 
 @app.get("/health", response_model=HealthResponse)
@@ -158,6 +177,8 @@ def query(request: QueryRequest) -> QueryResponse:
             retrieval_checks=trace.retrieval_checks,
         ),
         session_id=session_id,
+        verification=result.response.verification or verify_answer(result.response).model_dump(),
+        review=review_signal(request.question),
         operational_data=result.operational_data,
     )
 

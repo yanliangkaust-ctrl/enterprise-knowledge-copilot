@@ -21,3 +21,4 @@ class GroundedResponse(BaseModel):
     retrieved_evidence: list[EvidenceItem] = Field(default_factory=list)
     grounding_status: str
     generation_mode: str
+    verification: dict | None = None

@@ -111,6 +111,15 @@ def main():
         docker("volume", "create", volume)
         name = start("-first")
         url = wait_ready(name)
+        graph_payload = checked_request(url + "/graph")[1]
+        assert graph_payload["scope"] == "bundled_synthetic_corpus"
+        assert len(graph_payload["nodes"]) <= 80 and len(graph_payload["edges"]) <= 160
+        verified = checked_request(url + "/query", "According to the deployment guide, what are the steps to deploy the application?")[1]
+        assert verified["verification"]["status"] == "SUPPORTED"
+        assert verified["sources"] == ["Deployment_Guide.md"]
+        assert verified["review"]["status"] != "APPROVED"
+        report["checks"]["corpus_graph_and_claim_verification"] = True
+
         assert checked_request(url + "/health")[1] == {"status": "ok", "service": "enterprise-knowledge-copilot"}
         assert checked_request(url + "/ready")[0] == 200
         status, answer = checked_request(url + "/query", "What depends on Kubernetes?")
