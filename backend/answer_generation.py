@@ -88,6 +88,16 @@ def _generate_demo_answer(
             generation_mode=mode,
         )
 
+    from backend.precise_evidence import kind, select
+    if kind(question):
+        selected = select(question, evidence)
+        if selected:
+            used = list({item.chunk_id:item for _,item in selected}.values())
+            return GroundedResponse(answer="\n".join(dict.fromkeys(text for text,_ in selected)),
+                                    sources=list(dict.fromkeys(item.source_document for item in used)),
+                                    retrieved_evidence=used, grounding_status="Grounded in retrieved evidence", generation_mode=mode)
+        return GroundedResponse(answer="Insufficient evidence: retrieved sources do not explicitly support the requested relationship or cause.", sources=[], retrieved_evidence=evidence, grounding_status="Insufficient evidence",generation_mode=mode)
+
     supported = _supported_evidence(question, evidence)
     if not supported:
         emit("generation_refusal", reason_code="missing_question_support")

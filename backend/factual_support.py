@@ -20,7 +20,7 @@ _FACET_WORDS = {
 _QUESTION_WORDS = {
     "what", "which", "who", "how", "is", "are", "the", "a", "an", "of",
     "for", "does", "do", "did", "its", "their", "it", "that", "this",
-    "use", "uses", "used", "own", "owns", "to", "be", "on", "in", "at", "and", "was", "were",
+    "handles", "handle", "maintain", "maintains", "review", "reviews", "responsibilities", "use", "uses", "used", "own", "owns", "to", "be", "on", "in", "at", "and", "was", "were",
 }
 _UNKNOWN = re.compile(
     r"\b(?:unknown|unspecified|undetermined|unavailable|tbd|not\s+(?:known|specified|documented|defined|available)|"
@@ -47,11 +47,11 @@ def requested_facets(question: str) -> list[tuple[str, set[str]]]:
             facets.append("price/cost")
         if "protocol" in tokens:
             facets.append("protocol")
-        if "when" in tokens or re.search(r"\b(?:what|which)\s+(?:is\s+the\s+)?date\b", clause):
+        if re.search(r"^\s*when\b|\bwhen\s+(?:does|do|did|is|are|was|were|will)\b", clause) or re.search(r"\b(?:what|which)\s+(?:is\s+the\s+)?date\b", clause):
             facets.append("date/time")
         if re.search(r"\bhow\s+(?:often|long)\b|\bwhat\s+time\b", clause):
             facets.append("duration/frequency")
-        if re.search(r"\b(?:owns?|owner|ownership|responsible)\b", clause):
+        if re.search(r"\b(?:owns?|owner|ownership|responsible|responsibilities|handles|maintain)\b", clause):
             facets.append("ownership")
         if "where" in tokens or tokens & {"location", "located"}:
             facets.append("location")

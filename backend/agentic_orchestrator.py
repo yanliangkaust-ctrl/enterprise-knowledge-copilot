@@ -101,7 +101,7 @@ def plan_tools(question: str, graph: KnowledgeGraph) -> tuple[str, list[ToolDeci
     )
 
 
-def _run_tool(
+def _run_tool_raw(
     tool: str,
     question: str,
     chunks: Sequence[ChunkRecord],
@@ -116,6 +116,24 @@ def _run_tool(
     if tool == "hybrid_search":
         return search_hybrid(question, chunks, vector_index, graph, top_k=top_k)
     return vector_index.search(question, top_k=top_k)
+
+
+def _run_tool(tool, question, chunks, vector_index, graph, top_k):
+    from dataclasses import replace
+    from backend.precise_evidence import kind, select
+    from backend.answer_generation import evidence_items_from_results
+    from backend.hybrid_retrieval import HybridRetrievalResult
+    results = _run_tool_raw(tool, question, chunks, vector_index, graph, top_k)
+    if not kind(question) or top_k <= 0:
+        return results
+    candidates = [HybridRetrievalResult(c,0.0,0,0.0,0.0,"Explicit source sentence/action support; no similarity score.") for c in chunks]
+    supported = select(question,evidence_items_from_results(candidates))
+    ids = list(dict.fromkeys(e.chunk_id for _,e in supported))[:top_k]
+    pool = {r.chunk.chunk_id:r for r in candidates}
+    pool.update({r.chunk.chunk_id:r for r in results})
+    final = [pool[id] for id in ids] + [r for r in results if r.chunk.chunk_id not in ids]
+    emit("precise_evidence_selection", requested_support=kind(question), preserved_count=len(ids), selected_count=min(top_k,len(final)))
+    return [replace(r,rank=i) for i,r in enumerate(final[:top_k],1)]
 
 
 def _sufficiency_result(code, sufficient, reason):
@@ -187,7 +205,7 @@ def _evidence_sufficient(question: str, response: GroundedResponse, results: Seq
         return _sufficiency_result("missing_release_check_support", False, "The question asks about production checks, but the retrieved evidence does not cover a supported release-check facet.")
 
     missing = unsupported_facets(question, response.retrieved_evidence)
-    if textual_ownership:
+    if textual_ownership or explicit_ownership_support(question, response.retrieved_evidence):
         # Only ownership may be satisfied by the stricter text-policy alternative;
         # every other recognized factual facet retains its existing checks.
         missing = [facet for facet in missing if facet != "ownership"]

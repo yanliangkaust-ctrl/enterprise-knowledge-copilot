@@ -14,3 +14,5 @@
 @media(max-width:640px){.shell{display:flex;flex-direction:column}.sidebar{width:100%}.answer-inspector{width:100%;padding:20px 16px}.workspace{padding-inline:16px}.topbar{padding-inline:16px}}
 
 .corpus-svg{width:100%;background:#f6f8f1;border:1px solid #d3dfca;border-radius:8px;margin:12px 0}.corpus-svg g{cursor:pointer}.corpus-svg g:focus-visible{outline:2px solid #b87532}.inspector-panel select{width:100%;padding:10px;border:1px solid #cbd8c2;background:white;border-radius:6px;margin-top:7px;font:inherit}
+
+.answer ul{list-style:disc;padding-left:20px}.answer ol{list-style:decimal;padding-left:20px}.answer code{font-size:13px;background:#edf2e8;padding:2px 4px;border-radius:3px}.claim-status{font-size:11px;color:#657669;margin:10px 0;line-height:1.6}

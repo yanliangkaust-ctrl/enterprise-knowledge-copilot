@@ -1,0 +1,438 @@
+{
+  "version": 1,
+  "scope": "bundled synthetic corpus",
+  "cases": [
+    {
+      "id": "deployment-1",
+      "workflow": "Deployment",
+      "preset": true,
+      "question": "According to the deployment guide, what are the steps to deploy the application?",
+      "expected_facts": [
+        "Deploy API Gateway configuration first",
+        "then OCR Service workers",
+        "then verify Document Storage connectivity",
+        "Validate job submission and status through the API Gateway"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Deployment_Guide.md",
+          "section": "Deployment Sequence",
+          "text": "Deploy API Gateway configuration first, then OCR Service workers, then verify Document Storage connectivity. Validate job submission and status through the API Gateway. Do not expose raw document content in Monitoring Service logs.",
+          "text_sha256": "a19f92824e013e8ab857cf14d606e79812cb8ba0d97e1e2fa1aa4505041d3811"
+        }
+      ],
+      "unacceptable_claims": [
+        "kubectl apply",
+        "docker push",
+        "Sapphire Mesh"
+      ],
+      "ordered_facts": true
+    },
+    {
+      "id": "deployment-2",
+      "workflow": "Deployment",
+      "preset": false,
+      "question": "How to deploy the application?",
+      "expected_facts": [
+        "Deploy API Gateway configuration first",
+        "then OCR Service workers",
+        "then verify Document Storage connectivity",
+        "Validate job submission and status through the API Gateway"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Deployment_Guide.md",
+          "section": "Deployment Sequence",
+          "text": "Deploy API Gateway configuration first, then OCR Service workers, then verify Document Storage connectivity. Validate job submission and status through the API Gateway. Do not expose raw document content in Monitoring Service logs.",
+          "text_sha256": "a19f92824e013e8ab857cf14d606e79812cb8ba0d97e1e2fa1aa4505041d3811"
+        }
+      ],
+      "unacceptable_claims": [
+        "kubectl apply",
+        "docker push",
+        "Sapphire Mesh"
+      ],
+      "ordered_facts": true
+    },
+    {
+      "id": "deployment-3",
+      "workflow": "Deployment",
+      "preset": false,
+      "question": "What is the procedure for deployment of the application?",
+      "expected_facts": [
+        "Deploy API Gateway configuration first",
+        "then OCR Service workers",
+        "then verify Document Storage connectivity",
+        "Validate job submission and status through the API Gateway"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Deployment_Guide.md",
+          "section": "Deployment Sequence",
+          "text": "Deploy API Gateway configuration first, then OCR Service workers, then verify Document Storage connectivity. Validate job submission and status through the API Gateway. Do not expose raw document content in Monitoring Service logs.",
+          "text_sha256": "a19f92824e013e8ab857cf14d606e79812cb8ba0d97e1e2fa1aa4505041d3811"
+        }
+      ],
+      "unacceptable_claims": [
+        "kubectl apply",
+        "docker push",
+        "Sapphire Mesh"
+      ],
+      "ordered_facts": true
+    },
+    {
+      "id": "deployment-4",
+      "workflow": "Deployment",
+      "preset": false,
+      "question": "Describe the application deployment sequence.",
+      "expected_facts": [
+        "Deploy API Gateway configuration first",
+        "then OCR Service workers",
+        "then verify Document Storage connectivity",
+        "Validate job submission and status through the API Gateway"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Deployment_Guide.md",
+          "section": "Deployment Sequence",
+          "text": "Deploy API Gateway configuration first, then OCR Service workers, then verify Document Storage connectivity. Validate job submission and status through the API Gateway. Do not expose raw document content in Monitoring Service logs.",
+          "text_sha256": "a19f92824e013e8ab857cf14d606e79812cb8ba0d97e1e2fa1aa4505041d3811"
+        }
+      ],
+      "unacceptable_claims": [
+        "kubectl apply",
+        "docker push",
+        "Sapphire Mesh"
+      ],
+      "ordered_facts": true
+    },
+    {
+      "id": "architecture-1",
+      "workflow": "Architecture",
+      "preset": true,
+      "question": "How does the API Gateway interact with the OCR Service?",
+      "expected_facts": [
+        "A client submits a document through the API Gateway",
+        "The gateway validates the request and sends the job to the OCR Service",
+        "The OCR Service stores the source and result in Document Storage and publishes processing status for the Monitoring Service"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "OCR_Platform_Architecture.md",
+          "section": "Platform Flow",
+          "text": "A client submits a document through the API Gateway. The gateway validates the request and sends the job to the OCR Service. The OCR Service stores the source and result in Document Storage and publishes processing status for the Monitoring Service.",
+          "text_sha256": "b298b67ecb40e9cc3d759a07ce16bfe5a06ffaca1e7e499fd593c6e497f5f8b6"
+        }
+      ],
+      "unacceptable_claims": [
+        "directly to Kubernetes",
+        "bypasses authentication",
+        "Sapphire Mesh"
+      ],
+      "ordered_facts": false
+    },
+    {
+      "id": "architecture-2",
+      "workflow": "Architecture",
+      "preset": false,
+      "question": "How are requests routed from the API Gateway to the OCR Service?",
+      "expected_facts": [
+        "A client submits a document through the API Gateway",
+        "The gateway validates the request and sends the job to the OCR Service",
+        "The OCR Service stores the source and result in Document Storage and publishes processing status for the Monitoring Service"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "OCR_Platform_Architecture.md",
+          "section": "Platform Flow",
+          "text": "A client submits a document through the API Gateway. The gateway validates the request and sends the job to the OCR Service. The OCR Service stores the source and result in Document Storage and publishes processing status for the Monitoring Service.",
+          "text_sha256": "b298b67ecb40e9cc3d759a07ce16bfe5a06ffaca1e7e499fd593c6e497f5f8b6"
+        }
+      ],
+      "unacceptable_claims": [
+        "directly to Kubernetes",
+        "bypasses authentication",
+        "Sapphire Mesh"
+      ],
+      "ordered_facts": false
+    },
+    {
+      "id": "architecture-3",
+      "workflow": "Architecture",
+      "preset": false,
+      "question": "Explain the request flow between the API Gateway and OCR Service.",
+      "expected_facts": [
+        "A client submits a document through the API Gateway",
+        "The gateway validates the request and sends the job to the OCR Service",
+        "The OCR Service stores the source and result in Document Storage and publishes processing status for the Monitoring Service"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "OCR_Platform_Architecture.md",
+          "section": "Platform Flow",
+          "text": "A client submits a document through the API Gateway. The gateway validates the request and sends the job to the OCR Service. The OCR Service stores the source and result in Document Storage and publishes processing status for the Monitoring Service.",
+          "text_sha256": "b298b67ecb40e9cc3d759a07ce16bfe5a06ffaca1e7e499fd593c6e497f5f8b6"
+        }
+      ],
+      "unacceptable_claims": [
+        "directly to Kubernetes",
+        "bypasses authentication",
+        "Sapphire Mesh"
+      ],
+      "ordered_facts": false
+    },
+    {
+      "id": "architecture-4",
+      "workflow": "Architecture",
+      "preset": false,
+      "question": "What happens when the API Gateway sends a job to the OCR Service?",
+      "expected_facts": [
+        "A client submits a document through the API Gateway",
+        "The gateway validates the request and sends the job to the OCR Service",
+        "The OCR Service stores the source and result in Document Storage and publishes processing status for the Monitoring Service"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "OCR_Platform_Architecture.md",
+          "section": "Platform Flow",
+          "text": "A client submits a document through the API Gateway. The gateway validates the request and sends the job to the OCR Service. The OCR Service stores the source and result in Document Storage and publishes processing status for the Monitoring Service.",
+          "text_sha256": "b298b67ecb40e9cc3d759a07ce16bfe5a06ffaca1e7e499fd593c6e497f5f8b6"
+        }
+      ],
+      "unacceptable_claims": [
+        "directly to Kubernetes",
+        "bypasses authentication",
+        "Sapphire Mesh"
+      ],
+      "ordered_facts": false
+    },
+    {
+      "id": "security-1",
+      "workflow": "Security",
+      "preset": true,
+      "question": "Which teams own platform operations and security?",
+      "expected_facts": [
+        "The Operations Team reviews security alerts and access logs",
+        "Platform Engineering Team patches Kubernetes nodes and maintains deployment controls",
+        "The Security Team reviews the API Gateway, Document Storage, and service identities"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Security_Requirements.md",
+          "section": "Operational Controls",
+          "text": "The Operations Team reviews security alerts and access logs. Platform Engineering Team patches Kubernetes nodes and maintains deployment controls. Security findings must be resolved before a release leaves the UAT Environment.",
+          "text_sha256": "a071b4f035a5b9b78a4ad19138580f89b771b5f31ef55aafe80c3059e84b7429"
+        },
+        {
+          "document": "OCR_Platform_Architecture.md",
+          "section": "Teams and Dependencies",
+          "text": "The Platform Engineering Team owns Kubernetes and the deployment pipeline. The Security Team reviews the API Gateway, Document Storage, and service identities. The Operations Team responds to Monitoring Service alerts. The UAT Environment mirrors the production flow for release validation.",
+          "text_sha256": "2b74d23edffa39b95f7db04c75128be083bd2437a497a992cf396d695b336623"
+        }
+      ],
+      "unacceptable_claims": [
+        "Operations Team owns Kubernetes",
+        "Security Team owns Kubernetes",
+        "human approved this answer"
+      ],
+      "ordered_facts": false
+    },
+    {
+      "id": "security-2",
+      "workflow": "Security",
+      "preset": false,
+      "question": "Who handles platform operations and security?",
+      "expected_facts": [
+        "The Operations Team reviews security alerts and access logs",
+        "Platform Engineering Team patches Kubernetes nodes and maintains deployment controls",
+        "The Security Team reviews the API Gateway, Document Storage, and service identities"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Security_Requirements.md",
+          "section": "Operational Controls",
+          "text": "The Operations Team reviews security alerts and access logs. Platform Engineering Team patches Kubernetes nodes and maintains deployment controls. Security findings must be resolved before a release leaves the UAT Environment.",
+          "text_sha256": "a071b4f035a5b9b78a4ad19138580f89b771b5f31ef55aafe80c3059e84b7429"
+        },
+        {
+          "document": "OCR_Platform_Architecture.md",
+          "section": "Teams and Dependencies",
+          "text": "The Platform Engineering Team owns Kubernetes and the deployment pipeline. The Security Team reviews the API Gateway, Document Storage, and service identities. The Operations Team responds to Monitoring Service alerts. The UAT Environment mirrors the production flow for release validation.",
+          "text_sha256": "2b74d23edffa39b95f7db04c75128be083bd2437a497a992cf396d695b336623"
+        }
+      ],
+      "unacceptable_claims": [
+        "Operations Team owns Kubernetes",
+        "Security Team owns Kubernetes",
+        "human approved this answer"
+      ],
+      "ordered_facts": false
+    },
+    {
+      "id": "security-3",
+      "workflow": "Security",
+      "preset": false,
+      "question": "What are the responsibilities of the Platform Engineering Team, Operations Team and Security Team?",
+      "expected_facts": [
+        "The Operations Team reviews security alerts and access logs",
+        "Platform Engineering Team patches Kubernetes nodes and maintains deployment controls",
+        "The Security Team reviews the API Gateway, Document Storage, and service identities"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Security_Requirements.md",
+          "section": "Operational Controls",
+          "text": "The Operations Team reviews security alerts and access logs. Platform Engineering Team patches Kubernetes nodes and maintains deployment controls. Security findings must be resolved before a release leaves the UAT Environment.",
+          "text_sha256": "a071b4f035a5b9b78a4ad19138580f89b771b5f31ef55aafe80c3059e84b7429"
+        },
+        {
+          "document": "OCR_Platform_Architecture.md",
+          "section": "Teams and Dependencies",
+          "text": "The Platform Engineering Team owns Kubernetes and the deployment pipeline. The Security Team reviews the API Gateway, Document Storage, and service identities. The Operations Team responds to Monitoring Service alerts. The UAT Environment mirrors the production flow for release validation.",
+          "text_sha256": "2b74d23edffa39b95f7db04c75128be083bd2437a497a992cf396d695b336623"
+        }
+      ],
+      "unacceptable_claims": [
+        "Operations Team owns Kubernetes",
+        "Security Team owns Kubernetes",
+        "human approved this answer"
+      ],
+      "ordered_facts": false
+    },
+    {
+      "id": "security-4",
+      "workflow": "Security",
+      "preset": false,
+      "question": "Which teams maintain the platform and review security?",
+      "expected_facts": [
+        "The Operations Team reviews security alerts and access logs",
+        "Platform Engineering Team patches Kubernetes nodes and maintains deployment controls",
+        "The Security Team reviews the API Gateway, Document Storage, and service identities"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Security_Requirements.md",
+          "section": "Operational Controls",
+          "text": "The Operations Team reviews security alerts and access logs. Platform Engineering Team patches Kubernetes nodes and maintains deployment controls. Security findings must be resolved before a release leaves the UAT Environment.",
+          "text_sha256": "a071b4f035a5b9b78a4ad19138580f89b771b5f31ef55aafe80c3059e84b7429"
+        },
+        {
+          "document": "OCR_Platform_Architecture.md",
+          "section": "Teams and Dependencies",
+          "text": "The Platform Engineering Team owns Kubernetes and the deployment pipeline. The Security Team reviews the API Gateway, Document Storage, and service identities. The Operations Team responds to Monitoring Service alerts. The UAT Environment mirrors the production flow for release validation.",
+          "text_sha256": "2b74d23edffa39b95f7db04c75128be083bd2437a497a992cf396d695b336623"
+        }
+      ],
+      "unacceptable_claims": [
+        "Operations Team owns Kubernetes",
+        "Security Team owns Kubernetes",
+        "human approved this answer"
+      ],
+      "ordered_facts": false
+    },
+    {
+      "id": "incidents-1",
+      "workflow": "Incidents",
+      "preset": true,
+      "question": "What caused the batch processing incident?",
+      "expected_facts": [
+        "Kubernetes worker pods reached their memory limit",
+        "jobs stayed pending",
+        "The API Gateway remained available"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Incident_Batch_Failure.md",
+          "section": "Summary",
+          "text": "On 2025-04-18, a scheduled batch of 12,400 documents experienced elevated failures in the OCR Service. The API Gateway remained available, but Kubernetes worker pods reached their memory limit and jobs stayed pending.",
+          "text_sha256": "c3ad94ac9e72adfba5f0b9fa7871539e159f5f780e0b76412f16b0f517e5ead5"
+        }
+      ],
+      "unacceptable_claims": [
+        "API Gateway outage",
+        "documents were lost",
+        "six-hour processing backlog caused",
+        "network outage"
+      ],
+      "ordered_facts": false
+    },
+    {
+      "id": "incidents-2",
+      "workflow": "Incidents",
+      "preset": false,
+      "question": "Why did the batch OCR jobs fail?",
+      "expected_facts": [
+        "Kubernetes worker pods reached their memory limit",
+        "jobs stayed pending",
+        "The API Gateway remained available"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Incident_Batch_Failure.md",
+          "section": "Summary",
+          "text": "On 2025-04-18, a scheduled batch of 12,400 documents experienced elevated failures in the OCR Service. The API Gateway remained available, but Kubernetes worker pods reached their memory limit and jobs stayed pending.",
+          "text_sha256": "c3ad94ac9e72adfba5f0b9fa7871539e159f5f780e0b76412f16b0f517e5ead5"
+        }
+      ],
+      "unacceptable_claims": [
+        "API Gateway outage",
+        "documents were lost",
+        "six-hour processing backlog caused",
+        "network outage"
+      ],
+      "ordered_facts": false
+    },
+    {
+      "id": "incidents-3",
+      "workflow": "Incidents",
+      "preset": false,
+      "question": "What was the root cause of the batch failure?",
+      "expected_facts": [
+        "Kubernetes worker pods reached their memory limit",
+        "jobs stayed pending",
+        "The API Gateway remained available"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Incident_Batch_Failure.md",
+          "section": "Summary",
+          "text": "On 2025-04-18, a scheduled batch of 12,400 documents experienced elevated failures in the OCR Service. The API Gateway remained available, but Kubernetes worker pods reached their memory limit and jobs stayed pending.",
+          "text_sha256": "c3ad94ac9e72adfba5f0b9fa7871539e159f5f780e0b76412f16b0f517e5ead5"
+        }
+      ],
+      "unacceptable_claims": [
+        "API Gateway outage",
+        "documents were lost",
+        "six-hour processing backlog caused",
+        "network outage"
+      ],
+      "ordered_facts": false
+    },
+    {
+      "id": "incidents-4",
+      "workflow": "Incidents",
+      "preset": false,
+      "question": "Why were batch jobs left pending during the incident?",
+      "expected_facts": [
+        "Kubernetes worker pods reached their memory limit",
+        "jobs stayed pending",
+        "The API Gateway remained available"
+      ],
+      "supporting_chunks": [
+        {
+          "document": "Incident_Batch_Failure.md",
+          "section": "Summary",
+          "text": "On 2025-04-18, a scheduled batch of 12,400 documents experienced elevated failures in the OCR Service. The API Gateway remained available, but Kubernetes worker pods reached their memory limit and jobs stayed pending.",
+          "text_sha256": "c3ad94ac9e72adfba5f0b9fa7871539e159f5f780e0b76412f16b0f517e5ead5"
+        }
+      ],
+      "unacceptable_claims": [
+        "API Gateway outage",
+        "documents were lost",
+        "six-hour processing backlog caused",
+        "network outage"
+      ],
+      "ordered_facts": false
+    }
+  ]
+}

@@ -88,3 +88,5 @@ describe('active answer inspector',()=>{
   expect(within(screen.getByRole('complementary',{name:'Answer Inspector'})).getByText('Supported procedure.')).toBeInTheDocument();
  });
 });
+
+it('never presents NOT_VERIFIED as claim-verified',async()=>{vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({...response,verification:{version:'literal-v1',status:'NOT_VERIFIED',coverage_complete:true,blocked:false,claims:[],limitation:'Limited check'}})));render(<App/>);ask();await screen.findByText('● Grounded');expect(screen.getByText(/Evidence sufficiency is not claim verification. Claims not verified./)).toBeInTheDocument();expect(screen.queryByText(/Claims match cited source text/)).not.toBeInTheDocument();});

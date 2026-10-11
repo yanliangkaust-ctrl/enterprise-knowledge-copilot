@@ -28,6 +28,16 @@ jobs:
         if: always()
         run: python -m backend.evaluation_runner --check --output data/evaluation/phase2_report.json
 
+      - name: Source-grounded demo accuracy gate
+        run: python scripts/validate_demo_accuracy.py after
+
+      - name: Upload demo accuracy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-accuracy-report
+          path: artifacts/demo_accuracy_after.json
+
       - name: Upload RAG evaluation report
         if: always()
         uses: actions/upload-artifact@v4
