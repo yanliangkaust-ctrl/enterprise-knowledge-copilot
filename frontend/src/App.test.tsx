@@ -73,7 +73,7 @@ describe('active answer inspector',()=>{
   let resolve!:(r:Response)=>void;vi.mocked(fetch).mockReturnValue(new Promise(r=>resolve=r));ask('Latest question');
   const inspector=within(screen.getByRole('complementary',{name:'Answer Inspector'}));
   expect(inspector.getByText('Latest question')).toBeInTheDocument();expect(inspector.queryByText('Supported procedure.')).not.toBeInTheDocument();
-  expect(inspector.getByText('Pending API response')).toBeInTheDocument();
+  expect(inspector.getByText('Checks pending.')).toBeInTheDocument();
   resolve(new Response(JSON.stringify({...response,answer:'Latest answer',sufficiency_reason:'Latest API reason'})));
   await screen.findByText('Latest answer');expect(inspector.getByText('Latest API reason')).toBeInTheDocument();
   const articles=within(screen.getByRole('region',{name:'Conversation'})).getAllByRole('article');
@@ -83,7 +83,7 @@ describe('active answer inspector',()=>{
   render(<App/>);ask('Inspected question');await screen.findByText('● Grounded');
   fireEvent.click(screen.getByRole('button',{name:/New conversation/}));
   const inspector=within(screen.getByRole('complementary',{name:'Answer Inspector'}));
-  expect(inspector.getByText('Not evaluated — no active response')).toBeInTheDocument();
+  expect(inspector.getByText('Ask a question to inspect evidence and claim checks.')).toBeInTheDocument();
   fireEvent.click(within(screen.getByRole('navigation',{name:'Client-side conversations'})).getByRole('button',{name:'Inspected question'}));
   expect(within(screen.getByRole('complementary',{name:'Answer Inspector'})).getByText('Supported procedure.')).toBeInTheDocument();
  });
