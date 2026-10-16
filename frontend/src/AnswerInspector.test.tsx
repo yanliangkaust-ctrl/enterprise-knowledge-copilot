@@ -45,6 +45,19 @@ it('does not infer successful checks from empty SUPPORTED data',()=>{
  expect(screen.getByText('Not evaluated / unavailable')).toBeInTheDocument();
  expect(screen.queryByText('Source-text supported · bounded check')).not.toBeInTheDocument();
 });
+it.each([
+ {name:'incomplete coverage',coverage_complete:false,blocked:false},
+ {name:'blocked checks',coverage_complete:true,blocked:true},
+])('keeps SUPPORTED with $name unavailable without hiding claim evidence',({coverage_complete,blocked})=>{
+ render(<AnswerInspector response={{...response,verification:{...checked,coverage_complete,blocked}}}/>);
+ expect(screen.getByText('Sufficient evidence')).toBeInTheDocument();
+ expect(screen.getByText('Not evaluated / unavailable')).toHaveClass('unavailable');
+ expect(screen.queryByText('Source-text supported · bounded check',{exact:true})).not.toBeInTheDocument();
+ expect(screen.getByText('Limitations').closest('details')).not.toHaveAttribute('open');
+ expect(screen.getByText('Technical Details').closest('details')).not.toHaveAttribute('open');
+ fireEvent.click(screen.getByText('Source-text supported · bounded check · Claim'));
+ expect(screen.getByText('Evidence: real-chunk')).toBeVisible();
+});
 it('replaces prior evaluated checks with a concise pending state',()=>{
  render(<AnswerInspector pending response={{...response,verification:checked}}/>);
  expect(screen.getByRole('status')).toHaveTextContent('Checks pending.');

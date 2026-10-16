@@ -1,4 +1,4 @@
-import {useRef,useState} from 'react';
+import {useId,useRef,useState} from 'react';
 import CorpusGraph from './CorpusGraph';
 import type {Evidence,QueryResponse} from './api';
 const tabs=['Knowledge Graph','Sources','Verification'] as const;
@@ -9,6 +9,7 @@ export function graphEvidence(evidence:Evidence[]):Evidence[]{
  return evidence.filter(e=>typeof e.relationship_type==='string' && e.relationship_type.trim() && e.relationship_type!=='CAUSED_BY' && Array.isArray(e.entity_path) && e.entity_path.length===2 && e.entity_path.every(n=>typeof n==='string' && n.trim()) && e.text.toLowerCase().includes(e.entity_path[1].toLowerCase()));
 }
 export default function AnswerInspector({response,question,pending=false}:{response?:QueryResponse;question?:string;pending?:boolean}){
+ const inspectorId=useId();
  const [tab,setTab]=useState<Tab>('Verification');const buttons=useRef<(HTMLButtonElement|null)[]>([]);
  function move(event:React.KeyboardEvent,index:number){let next=index;if(event.key==='ArrowRight')next=(index+1)%tabs.length;else if(event.key==='ArrowLeft')next=(index+tabs.length-1)%tabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=tabs.length-1;else return;event.preventDefault();setTab(tabs[next]);buttons.current[next]?.focus();}
  const edges=response?graphEvidence(response.provenance):[];
@@ -19,8 +20,8 @@ export default function AnswerInspector({response,question,pending=false}:{respo
  const supported=verification?.status==='SUPPORTED' && verification.coverage_complete===true && verification.blocked===false && verification.claims.length>0 && verification.claims.every(c=>c.status==='SUPPORTED' && c.evidence_ids.length>0);
  const verificationLabel=!verification?'Not evaluated / unavailable':verification.status==='SUPPORTED' && !supported?'Not evaluated / unavailable':claimLabels[verification.status] ?? 'Unknown check status';
  return <aside className="answer-inspector" aria-label="Answer Inspector"><div className="inspector-heading"><span className="eyebrow">GROUNDING & VERIFICATION</span><h2>Answer Inspector</h2>{question && <p>{question}</p>}</div>
- <div role="tablist" aria-label="Inspector views" className="inspector-tabs">{tabs.map((name,i)=><button key={name} ref={node=>{buttons.current[i]=node;}} role="tab" id={`inspector-tab-${i}`} aria-selected={tab===name} aria-controls={`inspector-panel-${i}`} tabIndex={tab===name?0:-1} onClick={()=>setTab(name)} onKeyDown={e=>move(e,i)}>{name}</button>)}</div>
- <div role="tabpanel" tabIndex={0} id={`inspector-panel-${tabs.indexOf(tab)}`} aria-labelledby={`inspector-tab-${tabs.indexOf(tab)}`} className="inspector-panel">
+ <div role="tablist" aria-label="Inspector views" className="inspector-tabs">{tabs.map((name,i)=><button type="button" key={name} ref={node=>{buttons.current[i]=node;}} role="tab" id={`${inspectorId}-tab-${i}`} aria-selected={tab===name} aria-controls={`${inspectorId}-panel-${i}`} tabIndex={tab===name?0:-1} onClick={()=>setTab(name)} onKeyDown={e=>move(e,i)}>{name}</button>)}</div>
+ <div role="tabpanel" tabIndex={0} id={`${inspectorId}-panel-${tabs.indexOf(tab)}`} aria-labelledby={`${inspectorId}-tab-${tabs.indexOf(tab)}`} className="inspector-panel">
  {tab==='Verification' && (!evaluated?<p className="unavailable" role="status">{pending?'Checks pending.':'Ask a question to inspect evidence and claim checks.'}</p>:<>
  <h3>Evidence sufficiency</h3><p className={`status ${evaluated.evidence_sufficient===true?'grounded':evaluated.evidence_sufficient===false?'insufficient':''}`}>{evaluated.evidence_sufficient===true?'Sufficient evidence':evaluated.evidence_sufficient===false?'Insufficient evidence':'Not evaluated / unavailable'}</p><p>{evaluated.sufficiency_reason}</p><p className="inspector-note">Evidence sufficiency evaluates support for the question. It is not claim-by-claim verification of the final answer.</p>
  <h3>Bounded claim verification</h3><p className={supported?'status grounded':'unavailable'}>{verificationLabel}</p><p className="inspector-note">Source-text matching and limited value checks only; not general semantic entailment.</p>
