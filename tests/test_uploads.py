@@ -161,3 +161,31 @@ def test_pdf_page_limit():
     output = BytesIO(); writer.write(output)
     with pytest.raises(UploadError, match='20 pages'):
         parse_upload('long.pdf', output.getvalue())
+
+
+@pytest.mark.parametrize('project,amount,newline', [
+    ('Blue Lantern', '$75,000', '\n'),
+    ('Blue Lantern', '$75,000', '\r\n'),
+    ('Copper Meadow', '42000 EUR', '\n'),
+])
+def test_uploaded_labeled_budget_is_live_grounded_and_cited(library, project, amount, newline):
+    client, base = library
+    filename = 'New Text Document.txt'
+    text = f'Project: {project}{newline}Project Budget: {amount}'
+    uploaded = upload(client, filename, text.encode())
+    assert uploaded.status_code == 201 and uploaded.json()['chunk_count'] == 1
+    identifier = uploaded.json()['document_id']
+    # The same live snapshot used by /query contains the persisted upload and index.
+    docs, chunks, index, _ = base.snapshot()
+    assert any(d.name == filename and d.raw_text == text for d in docs)
+    chunk = next(c for c in chunks if c.document_name == filename)
+    assert chunk.chunk_id == f'{identifier}::v1::chunk-001'
+    assert chunk in index.chunks
+    result = client.post('/query', json={'question': f'What is the budget for Project {project}?'}).json()
+    assert result['evidence_sufficient'], result
+    assert amount in result['answer'] and result['sources'] == [filename]
+    assert result['verification']['status'] == 'SUPPORTED' and not result['verification']['blocked']
+    assert any(e['chunk_id'] == chunk.chunk_id and e['text'] == text for e in result['provenance'])
+    assert all(c['evidence_ids'] == [chunk.chunk_id] for c in result['verification']['claims'])
+    missing = client.post('/query', json={'question': f'Who is the project manager for Project {project}?'}).json()
+    assert not missing['evidence_sufficient'] and missing['sources'] == [], missing

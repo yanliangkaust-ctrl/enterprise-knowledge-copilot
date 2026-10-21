@@ -68,6 +68,20 @@ def _generate_demo_answer(
     evidence: list[EvidenceItem],
     mode: str,
 ) -> GroundedResponse:
+    from backend.factual_support import requested_facets, project_budget_support
+    facets = requested_facets(question)
+    if re.search(r'\bbudget\b', question, re.I) and len(facets) == 1 and facets[0][0] == 'price/cost':
+        records = list(project_budget_support(facets[0][1], evidence))
+        if records:
+            # Preserve both source labels in one literal claim. Multiple distinct
+            # assignments are ambiguous, not permission to pick the first price.
+            literals = {' '.join(text.split()).casefold() for text, _ in records}
+            if len(literals) != 1:
+                return GroundedResponse(answer='Insufficient evidence: retrieved project budgets conflict.', sources=[],
+                                        retrieved_evidence=evidence, grounding_status='Insufficient evidence', generation_mode=mode)
+            text, item = records[0]
+            return GroundedResponse(answer=' '.join(text.split()), sources=[item.source_document],
+                                    retrieved_evidence=evidence, grounding_status='Grounded in retrieved evidence', generation_mode=mode)
     notification_result = _format_notification_answer(question, evidence)
     if notification_result is not None:
         answer, supporting_evidence = notification_result

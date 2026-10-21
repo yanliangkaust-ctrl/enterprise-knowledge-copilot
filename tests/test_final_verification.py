@@ -3,6 +3,16 @@ from backend.claim_verification import verify_answer, review_signal
 from backend.rag_schema import GroundedResponse, EvidenceItem
 from backend.public_graph import corpus_graph
 
+
+@pytest.mark.parametrize('answer', [
+ 'Project Budget: $75,000',
+ 'Project: Blue Lantern Project Budget: $85,000',
+ 'Project: Copper Meadow Project Budget: $75,000',
+])
+def test_project_budget_verification_requires_literal_subject_and_value(answer):
+ v=verify_answer(response(answer, 'Project: Blue Lantern\nProject Budget: $75,000'))
+ assert v.blocked and v.status != 'SUPPORTED'
+
 def response(answer,text,sources=None):
  return GroundedResponse(answer=answer,sources=['demo.md'] if sources is None else sources,retrieved_evidence=[EvidenceItem(rank=1,source_document='demo.md',section='Facts',chunk_id='one',text=text,score=1)],grounding_status='Grounded in retrieved evidence',generation_mode='Demo / Local')
 

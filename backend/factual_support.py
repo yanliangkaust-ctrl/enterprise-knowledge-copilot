@@ -30,6 +30,31 @@ _DURATION = rf"{_NUMBER}\s*(?:milliseconds?|ms|seconds?|minutes?|hours?|days?|we
 _DATE = r"\b(?:\d{4}-\d{2}-\d{2}|\d{1,2}/\d{1,2}/\d{4}|(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}(?:,?\s+\d{4})?|\d{1,2}:\d{2}(?:\s*[ap]m)?)\b"
 _CONFIG_KEYS = {"port", "version", "timeout", "limit", "threshold", "interval", "setting", "configuration", "configured", "value"}
 
+# A deliberately narrow record grammar: only an adjacent explicit project name
+# and budget assignment can share subject scope. Never borrow arbitrary nearby prose.
+_PROJECT_BUDGET = re.compile(
+    r"^[ \t]*Project[ \t]*:[ \t]*(?P<name>[^\r\n]+?)[ \t]*\r?\n"
+    r"[ \t]*(?:Project[ \t]+)?Budget[ \t]*:[ \t]*"
+    r"(?:[$€£][ \t]*\d+(?:[.,]\d+)*|\d+(?:[.,]\d+)*[ \t]+(?:USD|EUR|GBP|dollars?|euros?|pounds?))[ \t]*$",
+    re.MULTILINE | re.IGNORECASE,
+)
+
+
+def project_budget_records(text):
+    """Yield literal two-line records, keeping their explicit subject attached."""
+    for match in _PROJECT_BUDGET.finditer(text):
+        literal = match.group(0).strip()
+        if not _UNKNOWN.search(literal) and '?' not in literal:
+            yield match.group('name').strip(), literal
+
+
+def project_budget_support(anchors, evidence):
+    """Require the full project name, not partial overlap or section context."""
+    for item in evidence:
+        for name, literal in project_budget_records(item.text):
+            if anchors - {'project'} and anchors - {'project'} == _words(name):
+                yield literal, item
+
 
 def _words(text):
     # Only normalize common inflections; this is deliberately not a semantic model.
@@ -106,6 +131,8 @@ def evidence_supports_facet(facet: str, anchors: set[str], evidence: Sequence[Ev
 Section context binds labeled values (e.g. Owner:) to their subject. A different
 subject's statement elsewhere in the chunk cannot supply the missing facet.
 """
+    if facet == 'price/cost' and any(project_budget_support(anchors, evidence)):
+        return True
     for item in evidence:
         text = item.text.replace("**", "")
         statements = re.split(r"(?<=[.!?])\s+|\n(?=\s*(?:[-*]|[A-Z]))", text)

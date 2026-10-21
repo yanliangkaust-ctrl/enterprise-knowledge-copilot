@@ -83,6 +83,29 @@ def test_labeled_assignment_uses_section_subject():
         "Birch Worker uses the Copper Link protocol.", "Ember Worker")) == ["protocol"]
 
 
+@pytest.mark.parametrize('text', [
+    'Project: Copper Meadow\nProject Budget: $75,000',
+    'Project: Blue Lantern\nProject Budget: unknown',
+    'Project: Blue Lantern\nProject Budget: TBD',
+    'Project: Blue Lantern\nProject Budget: 75 replicas',
+    'Project: Blue Lantern\nUnrelated note.\nProject Budget: $75,000',
+    'Project: Blue Lantern\nProject: Copper Meadow\nProject Budget: $75,000',
+    'Project Budget: $75,000',
+])
+def test_project_budget_record_does_not_borrow_subject_or_unknown_values(text):
+    assert unsupported_facets('What is the budget for Project Blue Lantern?', evidence(text)) == ['price/cost']
+
+
+def test_project_budget_extracts_only_matching_record_and_refuses_conflicts():
+    text = 'Project: Copper Meadow\nProject Budget: $99,000\nProject: Blue Lantern\nProject Budget: $75,000'
+    result = ask('What is the budget for Project Blue Lantern?', text)
+    assert result.trace.evidence_sufficient
+    assert '$75,000' in result.response.answer and '$99,000' not in result.response.answer
+    assert result.response.verification['status'] == 'SUPPORTED'
+    conflict = ask('What is the budget for Project Blue Lantern?', text + '\nProject: Blue Lantern\nProject Budget: $80,000')
+    assert not conflict.trace.evidence_sufficient and not conflict.response.sources
+
+
 def test_graph_requirement_is_preserved_even_with_facet_support():
     e = evidence("Platform Engineering Team owns Kubernetes.")
     response = GroundedResponse(answer=e[0].text, retrieved_evidence=e,

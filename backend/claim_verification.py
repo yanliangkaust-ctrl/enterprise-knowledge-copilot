@@ -2,6 +2,7 @@
 import re
 from pydantic import BaseModel, Field
 from backend.rag_schema import GroundedResponse
+from backend.factual_support import project_budget_records
 
 class ClaimCheck(BaseModel):
     text: str
@@ -38,7 +39,11 @@ def verify_answer(response: GroundedResponse, operational_text: str = "") -> Ver
         literal = normalize(text)
         source_units = [(e.chunk_id, normalize(re.sub(r"^\s*(?:[-*] |\d+[.)] )", "", unit)))
                         for e in evidence for unit in re.split(r"(?<=[.!?])\s+", re.sub(r"\s+", " ", e.text)) if unit.strip()]
-        matches = [chunk_id for chunk_id, unit in source_units if literal and literal == unit]
+        # Exact source spans only: a labeled budget stays bound to its adjacent
+        # project name, even when other records appear in the same source chunk.
+        source_units.extend((e.chunk_id, normalize(literal)) for e in evidence
+                            for _, literal in project_budget_records(e.text))
+        matches = list(dict.fromkeys(chunk_id for chunk_id, unit in source_units if literal and literal == unit))
         numeric = bool(VALUE.search(text))
         operational = bool(operational_text and literal in normalize(operational_text))
         if matches:
