@@ -4,7 +4,8 @@ Deploy only the FastAPI Docker service. Free storage is disposable: SQLite and
 session history are lost on restart/redeploy/idle spin-down. The eight bundled
 synthetic documents are recreated automatically. This is a restored sample corpus,
 not durable user knowledge. UUIDs/revisions may change after storage resets.
-Cobalt Relay and developer databases do not ship. No public upload API exists.
+Cobalt Relay and developer databases do not ship. The Document Library MVP adds a
+shared synthetic-only upload API; uploads remain ephemeral. See document-library.md.
 
 Render Free currently sleeps after 15 idle minutes; waking typically takes about
 one minute. Its 512 MB RAM / 0.1 CPU allocation requires actual startup and memory

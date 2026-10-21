@@ -53,6 +53,8 @@ class KeywordChunkResult:
 
 
 def _document_type(filename: str) -> str:
+    if Path(filename).suffix.casefold() in {'.pdf', '.txt'}:
+        return 'PDF Document' if filename.casefold().endswith('.pdf') else 'Text Document'
     for prefix, document_type in DOCUMENT_TYPES.items():
         if filename.startswith(prefix):
             return document_type
@@ -109,11 +111,10 @@ def chunk_documents(documents: list[DocumentRecord]) -> list[ChunkRecord]:
     for document in documents:
         document_chunk_number = 0
         sections = re.split(r"^(#{1,6})\s+(.+?)\s*$", document.raw_text, flags=re.MULTILINE)
-        if len(sections) <= 1:
-            sections = ["", "", document.raw_text]
-        for index in range(1, len(sections), 3):
-            heading = sections[index + 1].strip()
-            text = sections[index + 2].strip()
+        pairs = [("Document", sections[0])] if sections[0].strip() else []
+        pairs.extend((sections[i + 1], sections[i + 2]) for i in range(1, len(sections), 3))
+        for heading, text in pairs:
+            heading, text = heading.strip(), text.strip()
             if not text:
                 continue
             document_chunk_number += 1

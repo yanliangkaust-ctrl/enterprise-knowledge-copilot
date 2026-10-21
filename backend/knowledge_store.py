@@ -58,15 +58,24 @@ class KnowledgeStore:
         with self.connect() as connection:
             return connection.execute('SELECT revision FROM knowledge_revision').fetchone()[0]
 
-    def update(self, documents, prepare, only_missing=False):
+    def update(self, documents, prepare, only_missing=False, upload=False):
         # SQLite serializes writers. Index failure rolls back document/version changes.
         with self.connect() as connection:
             connection.execute('BEGIN IMMEDIATE')
             changed = False
+            if upload:
+                from backend.upload_parser import UploadError, MAX_DOCUMENTS, MAX_CORPUS_BYTES
+                _, current = self._read(connection)
+                document = documents[0]
+                existing = next((d for d in current if d.name.casefold() == document.name.casefold()), None)
+                if existing and (existing.name != document.name or existing.raw_text != document.raw_text):
+                    raise UploadError('Filename already exists. Choose a new filename; replacement is not supported.', 409)
+                if not existing and (len(current) >= MAX_DOCUMENTS or sum(len(d.raw_text.encode('utf-8')) for d in current) + len(document.raw_text.encode('utf-8')) > MAX_CORPUS_BYTES):
+                    raise UploadError('Demo library capacity reached. Use a fresh local store or contact the operator.', 409)
             for document in documents:
                 filename = Path(document.name).name
-                if not filename or Path(filename).suffix.casefold() != '.md':
-                    raise ValueError('Only Markdown (.md) files are supported.')
+                if not filename or Path(filename).suffix.casefold() not in {'.md', '.txt', '.pdf'}:
+                    raise ValueError('Only Markdown, TXT, and extracted PDF text are supported.')
                 digest = hashlib.sha256(document.raw_text.encode('utf-8')).hexdigest()
                 existing = connection.execute("""
                     SELECT d.document_id, d.active_version, v.content_hash FROM documents d

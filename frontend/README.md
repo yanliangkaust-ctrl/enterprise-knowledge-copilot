@@ -1,5 +1,10 @@
 # Enterprise Knowledge Copilot frontend
 
+Document Library now supports bounded PDF, TXT and Markdown uploads through the
+existing API and live indexes. See [MVP contracts and storage limits](../docs/document-library.md).
+The paragraphs below describe earlier phases where noted; uploads are shared demo
+content and are not durable on Render Free.
+
 React + TypeScript + Vite, Tailwind CSS. Live API answers only; fixtures are confined to tests. Backend logic, retrieval and deployment configuration are unchanged.
 
 ## Local preview

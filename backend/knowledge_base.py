@@ -141,6 +141,16 @@ class KnowledgeBase:
         self.add_documents([document])
         return next(item for item in self.documents if item.name == document.name)
 
+    def ingest_upload(self, document):
+        """Publish extracted text using the same transactional index lifecycle."""
+        with self._lock:
+            if not self.store:
+                raise ValueError('Document uploads require the shared SQLite store.')
+            revision, snapshot = self.store.update([document], self._prepare, upload=True)
+            self._snapshot, self.revision = snapshot, revision
+            self.failure_code = None
+            return next(item for item in self.documents if item.name == document.name)
+
     def refresh(self):
         with self._lock:
             if self.store:

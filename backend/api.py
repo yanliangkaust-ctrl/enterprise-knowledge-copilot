@@ -12,7 +12,11 @@ from backend.public_graph import corpus_graph
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
+from starlette.concurrency import run_in_threadpool
+from threading import Lock
+import asyncio
+from backend.upload_parser import parse_upload, validate_filename, UploadError, MAX_FILE_BYTES
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -102,6 +106,60 @@ if origins:
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET","POST"], allow_headers=["Content-Type"], expose_headers=["X-Request-ID","Retry-After"], allow_credentials=False)
 
 session_store = InMemorySessionStore()
+upload_lock = Lock()
+upload_limiter = ClientRateLimiter(limit=6)
+
+
+def document_metadata(document, chunks):
+    return {'filename': document.name, 'document_id': document.metadata.get('document_id'),
+            'version': document.metadata.get('version'), 'status': 'ready',
+            'text_bytes': document.metadata['file_size_bytes'],
+            'chunk_count': sum(c.document_name == document.name for c in chunks)}
+
+
+@app.get('/documents')
+def documents():
+    base = get_shared_knowledge_base()
+    docs, chunks, _, _ = base.snapshot()
+    return {'documents': [document_metadata(d, chunks) for d in docs],
+            'storage_notice': 'Shared demo library. Local storage may be ephemeral: uploads can be lost on restart, redeploy, or idle spin-down. Do not upload private data.'}
+
+
+@app.post('/documents', status_code=201, openapi_extra={'requestBody': {'required': True, 'content': {'application/octet-stream': {'schema': {'type': 'string', 'format': 'binary'}}}}})
+async def upload_document(request: Request, filename: str):
+    """Raw file bytes; filename query parameter avoids multipart/temp-file buffering."""
+    allowed, retry = upload_limiter.check((request.client.host if request.client else 'unknown'))
+    if not allowed:
+        raise HTTPException(429, 'Upload limit reached. Wait before trying again.', headers={'Retry-After': str(retry)})
+    try:
+        validate_filename(filename)
+        if request.headers.get('content-type', '').split(';')[0] not in {'application/octet-stream', 'application/pdf', 'text/plain', 'text/markdown'}:
+            raise UploadError('Send PDF, TXT, or Markdown file bytes.', 415)
+        if not upload_lock.acquire(blocking=False):
+            raise HTTPException(429, 'Another document is indexing. Please retry shortly.', headers={'Retry-After': '5'})
+        try:
+            data = bytearray()
+            async with asyncio.timeout(30):
+                async for part in request.stream():
+                    if len(data) + len(part) > MAX_FILE_BYTES:
+                        raise UploadError('File exceeds 1 MiB. Split or reduce the file.', 413)
+                    data.extend(part)
+            document = await run_in_threadpool(parse_upload, filename, bytes(data))
+            base = get_shared_knowledge_base()
+            indexed = await run_in_threadpool(base.ingest_upload, document)
+            return document_metadata(indexed, base.snapshot()[1])
+        finally:
+            upload_lock.release()
+    except UploadError as exc:
+        raise HTTPException(exc.status, str(exc)) from None
+    except TimeoutError:
+        raise HTTPException(408, 'Upload took too long. Retry with a smaller file.') from None
+    except (OSError, sqlite3.Error):
+        raise HTTPException(503, 'Document storage is unavailable. Retry later.') from None
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(503, 'Document indexing could not be confirmed. Refresh the library before retrying.') from None
 
 
 @app.get("/graph")

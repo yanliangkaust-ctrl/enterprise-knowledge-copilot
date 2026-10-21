@@ -1,4 +1,5 @@
 @import "tailwindcss";
+.library-nav{display:flex;flex-direction:column;gap:8px}.library-nav button{text-align:left;background:transparent;color:inherit;border:1px solid #54736a;border-radius:7px;padding:12px;min-height:44px}.library-nav button[aria-current=page]{background:#2b504b}.document-library{max-width:850px;margin:auto;padding:28px;line-height:1.7;overflow-wrap:anywhere}.document-library h1{font-size:26px}.document-library h2{font-size:18px;margin-top:24px}.document-library p{margin:14px 0}.document-library label{display:block;font-weight:600}.document-library input{display:block;max-width:100%;margin:12px 0}.document-library li{padding:12px 0;border-bottom:1px solid #d8e1d5}.document-library li span{display:block;color:#657669}
 /* Keep inspector evidence readable in narrow columns and keyboard focus visible. */
 .answer-inspector,.inspector-tabs button,.verification-fields>*{min-width:0}
 .answer-inspector .verification-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
