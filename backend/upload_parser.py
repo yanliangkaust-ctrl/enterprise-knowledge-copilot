@@ -1,14 +1,12 @@
 """Bounded extraction into the existing document/chunk model. No OCR or binary storage."""
-from io import BytesIO
 from pathlib import Path
 import re
 import subprocess
 import sys
 
 from backend.document_ingestion import parse_markdown_content, chunk_documents
+from backend.pdf_worker import MAX_FILE_BYTES, MAX_TEXT_BYTES
 
-MAX_FILE_BYTES = 1024 * 1024
-MAX_TEXT_BYTES = 200_000
 MAX_DOCUMENTS = 28  # eight samples plus twenty uploaded documents
 MAX_CORPUS_BYTES = 2_000_000
 
@@ -29,25 +27,6 @@ def validate_filename(filename):
         raise UploadError('Bundled demo documents cannot be replaced. Choose a new filename.', 409)
 
 
-def extract_pdf(data):
-    """Executed in a disposable worker so malformed PDFs have a wall-clock bound."""
-    from pypdf import PdfReader
-    reader = PdfReader(BytesIO(data), strict=True)
-    if reader.is_encrypted:
-        raise UploadError('Encrypted PDFs are unsupported. Upload an unencrypted text PDF.')
-    if not 1 <= len(reader.pages) <= 20:
-        raise UploadError('PDFs must contain between 1 and 20 pages.')
-    parts = []
-    for page in reader.pages:
-        contents = page.get_contents()
-        if contents is not None and len(contents.get_data()) > 2_000_000:
-            raise UploadError('PDF page content is too complex. Export a smaller text PDF or TXT file.')
-        parts.append(page.extract_text() or '')
-        if len('\n'.join(parts).encode('utf-8')) > MAX_TEXT_BYTES:
-            raise UploadError('Extracted text exceeds 200 KB. Split the document.', 413)
-    return '\n\n'.join(parts)
-
-
 def parse_upload(filename, data):
     validate_filename(filename)
     if not data or len(data) > MAX_FILE_BYTES:
@@ -56,7 +35,9 @@ def parse_upload(filename, data):
         if not data.startswith(b'%PDF-'):
             raise UploadError('This file is not a PDF. Check its contents and extension.')
         try:
-            result = subprocess.run([sys.executable, '-m', 'backend.pdf_worker'], input=data,
+            # -m backend.pdf_worker executes backend/__init__.py first, loading
+            # NumPy/LangGraph before the child memory limit. Run the isolated file.
+            result = subprocess.run([sys.executable, str(Path(__file__).with_name('pdf_worker.py'))], input=data,
                                     capture_output=True, timeout=15, check=False,
                                     cwd=Path(__file__).resolve().parents[1])
         except subprocess.TimeoutExpired:
